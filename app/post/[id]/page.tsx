@@ -4,6 +4,7 @@ import { getPostById } from "@/lib/outfitr-api";
 import { getPostUser, getPrimaryMedia } from "@/lib/post-utils";
 import PostDetailView from "@/components/PostDetailView";
 import AppStoreBar from "@/components/AppStoreBar";
+import SharedNavBar from "@/components/SharedNavBar";
 import { SITE_NAME } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
@@ -73,8 +74,9 @@ export default async function PostPage({
   }
 
   return (
-    <div className="min-h-screen bg-black pb-24">
+    <div className="min-h-screen bg-black pb-36">
       <PostDetailView post={post} />
+      <SharedNavBar activePostId={id} variant="dark" />
       <AppStoreBar variant="dark" />
     </div>
   );

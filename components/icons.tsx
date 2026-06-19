@@ -154,3 +154,71 @@ export function PlayIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+export function CompassIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
+      <circle cx="12" cy="12" r="9" strokeLinejoin="round" />
+      <path
+        d="M15.5 8.5l-2 5-5 2 2-5 5-2Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function ImageStackIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
+      <rect x="4" y="4" width="13" height="13" rx="2.5" strokeLinejoin="round" />
+      <path
+        d="M7.5 13.5l2.4-2.6a1 1 0 0 1 1.5.05L13 13l1.3-1.5a1 1 0 0 1 1.5 0l1.2 1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="8.3" cy="8" r="1.1" fill="currentColor" stroke="none" />
+      <path
+        d="M20 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function TagIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="13"
+      height="13"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
+      <path
+        d="M11.5 3.5h6a2 2 0 0 1 2 2v6a2 2 0 0 1-.6 1.4l-7.9 7.9a2 2 0 0 1-2.8 0L3.2 15.8a2 2 0 0 1 0-2.8l7.9-7.9a2 2 0 0 1 .4-.4Z"
+        strokeLinejoin="round"
+      />
+      <circle cx="15.5" cy="7.5" r="1.3" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}

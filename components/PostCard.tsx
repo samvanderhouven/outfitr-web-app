@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { OutfitrPost } from "@/lib/types";
 import { getPrimaryMedia } from "@/lib/post-utils";

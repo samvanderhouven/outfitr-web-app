@@ -14,6 +14,7 @@ import {
   PlayIcon,
   ShareIcon,
 } from "./icons";
+import TagOverlay from "./TagOverlay";
 import { APP_STORE_URL } from "@/lib/config";
 
 function GlassButton({
@@ -183,6 +184,13 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
           </span>
         )}
 
+        {/* Tagged brands / shoppable items on this media */}
+        <TagOverlay
+          tags={currentMedia?.tags}
+          postId={post._id}
+          mediaIndex={activeIndex}
+        />
+
         {/* Top overlay */}
         <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 pt-4">
           <GlassButton
@@ -207,7 +215,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
         )}
 
         {/* Right action rail */}
-        <div className="absolute right-3 bottom-28 z-20 flex flex-col items-center gap-5">
+        <div className="absolute right-3 bottom-44 z-20 flex flex-col items-center gap-5">
           <button
             type="button"
             aria-label="Vind ik leuk"
@@ -285,7 +293,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
             </span>
           </div>
           {post.description && (
-            <p className="mt-2 line-clamp-2 text-sm text-white/90">
+            <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-white/90">
               {post.description}
             </p>
           )}
@@ -295,7 +303,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
       {/* Inline nudge after an interaction attempt */}
       {showSharePrompt && (
         <div
-          className="fixed inset-x-0 bottom-[72px] z-50 mx-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-white/15 bg-[#10161d]/95 p-4 text-center shadow-xl backdrop-blur-md sm:max-w-lg"
+          className="fixed inset-x-0 bottom-[140px] z-50 mx-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-white/15 bg-[#10161d]/95 p-4 text-center shadow-xl backdrop-blur-md sm:max-w-lg"
           role="dialog"
         >
           <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">

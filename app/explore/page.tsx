@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SiteHeader from "@/components/SiteHeader";
 import AppStoreBar from "@/components/AppStoreBar";
+import SharedNavBar from "@/components/SharedNavBar";
 import ExploreFeed from "@/components/ExploreFeed";
 import { getExplorePosts } from "@/lib/outfitr-api";
 import { SITE_DESCRIPTION } from "@/lib/config";
@@ -29,7 +30,7 @@ export default async function ExplorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-bg pb-24">
+    <div className="min-h-screen bg-brand-bg pb-36">
       <SiteHeader />
 
       <main className="mx-auto max-w-6xl px-4 pb-10 pt-6 sm:px-6">
@@ -61,6 +62,7 @@ export default async function ExplorePage() {
         )}
       </main>
 
+      <SharedNavBar />
       <AppStoreBar />
     </div>
   );
