@@ -1,5 +1,5 @@
 import "server-only";
-import type { ExploreResponse, PostByIdResponse } from "./types";
+import type { ExploreResponse, OutfitrPost, PostByIdResponse } from "./types";
  
 const API_BASE_URL =
   process.env.OUTFITR_API_BASE_URL || "https://api.outfitr.nl/api/v1";
