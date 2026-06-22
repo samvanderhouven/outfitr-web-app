@@ -64,7 +64,6 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
   const currentMedia = media[activeIndex];
   const isVideo = currentMedia?.mediaType === "video";
 
-  // Format date like the app: "18 June"
   const formattedDate = post.createdAt
     ? new Date(post.createdAt).toLocaleDateString("en-GB", {
         day: "numeric",
@@ -137,63 +136,9 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-md bg-black sm:max-w-lg">
+    <div className="relative mx-auto w-full max-w-md bg-white sm:max-w-lg">
 
-      {/* ── TOP HEADER (like the app: back arrow + username + date + options) ── */}
-      <div
-        className="flex items-center gap-3 px-4 py-3"
-        style={{ paddingTop: "env(safe-area-inset-top, 12px)" }}
-      >
-        <GlassButton
-          ariaLabel="Back to Explore"
-          onClick={() => { window.location.href = "/explore"; }}
-          className="h-10 w-10 shrink-0"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-            className="h-5 w-5">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </GlassButton>
-
-        {/* Avatar + username + date */}
-        <div className="flex flex-1 items-center gap-2.5">
-          {user?.profilePicture ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={user.profilePicture}
-              alt={user.username || "User"}
-              className="h-10 w-10 rounded-full border-2 border-white/60 object-cover"
-            />
-          ) : (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4b5e70] to-[#a1b8c4] text-sm font-semibold text-white">
-              {initials}
-            </div>
-          )}
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold text-white">
-              {user?.username || "OutfitR user"}
-            </span>
-            {formattedDate && (
-              <span className="text-xs text-white/60">{formattedDate}</span>
-            )}
-          </div>
-        </div>
-
-        {/* Three dots */}
-        <button
-          type="button"
-          aria-label="More options"
-          onClick={() => setShowSharePrompt(true)}
-          className="flex h-8 w-8 items-center justify-center text-white/80"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-            <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
-          </svg>
-        </button>
-      </div>
-
-      {/* ── MEDIA ── */}
+      {/* ── MEDIA with floating header overlay ── */}
       <div
         className="relative w-full overflow-hidden bg-black"
         style={{ aspectRatio: "3/4" }}
@@ -221,7 +166,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
           </div>
         )}
 
-        {/* Multi-image arrows */}
+        {/* Multi-image dots + arrows */}
         {media.length > 1 && (
           <>
             {activeIndex > 0 && (
@@ -254,7 +199,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
           </span>
         )}
 
-        {/* Liquid glass tags */}
+        {/* Tags with smooth pop animation */}
         {showTags && (
           <TagOverlay tags={currentMedia?.tags} postId={post._id} mediaIndex={activeIndex} />
         )}
@@ -265,48 +210,104 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
             <HeartIcon filled className="h-20 w-20 animate-heart-pop text-brand-secondary drop-shadow-lg" />
           </div>
         )}
+
+        {/* ── FLOATING HEADER — overlays the top of the photo ── */}
+        <div
+          className="absolute inset-x-0 top-0 z-20 flex items-center gap-3 px-4"
+          style={{
+            paddingTop: "env(safe-area-inset-top, 14px)",
+            paddingBottom: "14px",
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Back arrow */}
+          <GlassButton
+            ariaLabel="Back to Explore"
+            onClick={() => { window.location.href = "/explore"; }}
+            className="h-9 w-9 shrink-0"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              className="h-5 w-5">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </GlassButton>
+
+          {/* Avatar */}
+          {user?.profilePicture ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={user.profilePicture}
+              alt={user.username || "User"}
+              className="h-9 w-9 shrink-0 rounded-full border-2 border-white/70 object-cover"
+            />
+          ) : (
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4b5e70] to-[#a1b8c4] text-sm font-semibold text-white">
+              {initials}
+            </div>
+          )}
+
+          {/* Username + date */}
+          <div className="flex flex-1 flex-col">
+            <span className="text-sm font-semibold text-white drop-shadow-sm">
+              {user?.username || "OutfitR user"}
+            </span>
+            {formattedDate && (
+              <span className="text-xs text-white/70">{formattedDate}</span>
+            )}
+          </div>
+
+          {/* Three dots */}
+          <button
+            type="button"
+            aria-label="More options"
+            onClick={() => setShowSharePrompt(true)}
+            className="flex h-8 w-8 items-center justify-center text-white/80"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+              <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      {/* ── BOTTOM ACTIONS (like the app: like / comment / share / save) ── */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-4">
-          {/* Like */}
+      {/* ── BOTTOM ACTIONS ── */}
+      <div className="flex items-center justify-between bg-white px-4 py-3">
+        <div className="flex items-center gap-5">
           <button type="button" aria-label="Like" onClick={triggerLike}
             className="flex items-center gap-1.5">
             <HeartIcon filled={liked}
-              className={liked ? "h-6 w-6 text-red-500" : "h-6 w-6 text-white"} />
-            <span className="text-sm font-medium text-white">
+              className={liked ? "h-6 w-6 text-red-500" : "h-6 w-6 text-gray-800"} />
+            <span className="text-sm font-medium text-gray-800">
               {formatCount((post.likeCount || 0) + (liked && !post.isLikedByCurrentUser ? 1 : 0))}
             </span>
           </button>
 
-          {/* Comment */}
           <button type="button" aria-label="Comments"
             onClick={() => setShowSharePrompt(true)}
             className="flex items-center gap-1.5">
-            <ChatIcon className="h-6 w-6 text-white" />
-            <span className="text-sm font-medium text-white">
+            <ChatIcon className="h-6 w-6 text-gray-800" />
+            <span className="text-sm font-medium text-gray-800">
               {formatCount(post.commentCount)}
             </span>
           </button>
 
-          {/* Share */}
           <button type="button" aria-label="Share" onClick={handleShare}>
-            <ShareIcon className="h-6 w-6 text-white" />
+            <ShareIcon className="h-6 w-6 text-gray-800" />
           </button>
         </div>
 
-        {/* Save */}
         <button type="button" aria-label="Save" onClick={handleSave}>
           <BookmarkIcon filled={saved}
-            className={saved ? "h-6 w-6 text-brand-secondary" : "h-6 w-6 text-white"} />
+            className={saved ? "h-6 w-6 text-brand-primary" : "h-6 w-6 text-gray-800"} />
         </button>
       </div>
 
       {/* Caption */}
       {post.description && (
-        <div className="px-4 pb-4">
-          <p className="text-sm leading-relaxed text-white/90">
+        <div className="bg-white px-4 pb-3">
+          <p className="text-sm leading-relaxed text-gray-900">
             <span className="font-semibold">{user?.username || "user"}</span>{" "}
             {post.description}
           </p>
@@ -314,15 +315,8 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
       )}
 
       {/* Affiliate label */}
-      <div className="flex justify-end px-4 pb-2">
-        <span
-          className="rounded-full px-3 py-1 text-xs text-white/70"
-          style={{
-            backgroundColor: "rgba(255,255,255,0.12)",
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
-          }}
-        >
+      <div className="flex justify-end bg-white px-4 pb-4">
+        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-500">
           Affiliate/Sponsored
         </span>
       </div>
