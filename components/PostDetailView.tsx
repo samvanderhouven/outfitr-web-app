@@ -32,7 +32,13 @@ function GlassButton({
       type="button"
       aria-label={ariaLabel}
       onClick={onClick}
-      className={`flex items-center justify-center rounded-full border border-white/30 bg-white/10 text-white backdrop-blur-md transition-transform active:scale-90 ${className}`}
+      style={{
+        backgroundColor: "rgba(255,255,255,0.05)",
+        borderColor: "rgba(255,255,255,0.4)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+      }}
+      className={`flex items-center justify-center rounded-full border-[1.5px] text-white transition-transform active:scale-90 ${className}`}
     >
       {children}
     </button>
@@ -49,7 +55,6 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
   const [saved, setSaved] = useState(
     Boolean(post.isSavedByCurrentUser ?? post.savedByCurrentUser),
   );
-  // Tags visible by default on open, toggled by single tap
   const [showTags, setShowTags] = useState(true);
   const clickedRef = useRef(false);
   const lastTapRef = useRef<number>(0);
@@ -59,7 +64,14 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
   const currentMedia = media[activeIndex];
   const isVideo = currentMedia?.mediaType === "video";
 
-  // Register a single "click" against the post when the page is actually viewed
+  // Format date like the app: "18 June"
+  const formattedDate = post.createdAt
+    ? new Date(post.createdAt).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+      })
+    : null;
+
   useEffect(() => {
     if (clickedRef.current) return;
     clickedRef.current = true;
@@ -79,20 +91,15 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
   }, []);
 
   const triggerLike = useCallback(() => {
-    if (!liked) {
-      triggerLikeAnimation();
-    }
+    if (!liked) triggerLikeAnimation();
     setLiked((v) => !v);
     setShowSharePrompt(true);
   }, [liked, triggerLikeAnimation]);
 
-  // Double-tap to like on the image area
   const handleImageTap = useCallback(() => {
     const now = Date.now();
     const DOUBLE_TAP_DELAY = 300;
-
     if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-      // Double tap detected → like
       if (doubleTapTimerRef.current) {
         clearTimeout(doubleTapTimerRef.current);
         doubleTapTimerRef.current = null;
@@ -104,7 +111,6 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
       }
       lastTapRef.current = 0;
     } else {
-      // First tap → schedule single-tap action (toggle tags)
       lastTapRef.current = now;
       doubleTapTimerRef.current = setTimeout(() => {
         setShowTags((v) => !v);
@@ -119,34 +125,78 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
   };
 
   const handleShare = async () => {
-    const url =
-      typeof window !== "undefined" ? window.location.href : "";
+    const url = typeof window !== "undefined" ? window.location.href : "";
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: "OutfitR",
-          text: "Check out this outfit on OutfitR",
-          url,
-        });
+        await navigator.share({ title: "OutfitR", text: "Check out this outfit on OutfitR", url });
         return;
-      } catch {
-        // user cancelled or share failed, fall through to clipboard
-      }
+      } catch { /* cancelled */ }
     }
-    try {
-      await navigator.clipboard.writeText(url);
-      setShowSharePrompt(true);
-    } catch {
-      setShowSharePrompt(true);
-    }
+    try { await navigator.clipboard.writeText(url); } catch { /* ignore */ }
+    setShowSharePrompt(true);
   };
 
   return (
-    <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-black sm:max-w-lg">
-      {/* Full-screen media — fills viewport like the app reel */}
+    <div className="relative mx-auto w-full max-w-md bg-black sm:max-w-lg">
+
+      {/* ── TOP HEADER (like the app: back arrow + username + date + options) ── */}
       <div
-        className="relative flex-1 overflow-hidden bg-black"
-        style={{ minHeight: "100svh" }}
+        className="flex items-center gap-3 px-4 py-3"
+        style={{ paddingTop: "env(safe-area-inset-top, 12px)" }}
+      >
+        <GlassButton
+          ariaLabel="Back to Explore"
+          onClick={() => { window.location.href = "/explore"; }}
+          className="h-10 w-10 shrink-0"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            className="h-5 w-5">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </GlassButton>
+
+        {/* Avatar + username + date */}
+        <div className="flex flex-1 items-center gap-2.5">
+          {user?.profilePicture ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={user.profilePicture}
+              alt={user.username || "User"}
+              className="h-10 w-10 rounded-full border-2 border-white/60 object-cover"
+            />
+          ) : (
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4b5e70] to-[#a1b8c4] text-sm font-semibold text-white">
+              {initials}
+            </div>
+          )}
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-white">
+              {user?.username || "OutfitR user"}
+            </span>
+            {formattedDate && (
+              <span className="text-xs text-white/60">{formattedDate}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Three dots */}
+        <button
+          type="button"
+          aria-label="More options"
+          onClick={() => setShowSharePrompt(true)}
+          className="flex h-8 w-8 items-center justify-center text-white/80"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+            <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* ── MEDIA ── */}
+      <div
+        className="relative w-full overflow-hidden bg-black"
+        style={{ aspectRatio: "3/4" }}
         onClick={handleImageTap}
       >
         {currentMedia?.mediaUrl ? (
@@ -155,11 +205,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
               key={currentMedia.mediaUrl}
               src={currentMedia.mediaUrl}
               className="absolute inset-0 h-full w-full object-cover"
-              controls
-              playsInline
-              autoPlay
-              muted
-              loop
+              controls playsInline autoPlay muted loop
             />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
@@ -175,42 +221,27 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
           </div>
         )}
 
-        {/* Media nav arrows for multi-image posts */}
+        {/* Multi-image arrows */}
         {media.length > 1 && (
           <>
             {activeIndex > 0 && (
-              <button
-                type="button"
-                aria-label="Previous"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveIndex((i) => Math.max(0, i - 1));
-                }}
-                className="absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm"
-              >
+              <button type="button" aria-label="Previous"
+                onClick={(e) => { e.stopPropagation(); setActiveIndex((i) => Math.max(0, i - 1)); }}
+                className="absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm">
                 <ChevronLeft />
               </button>
             )}
             {activeIndex < media.length - 1 && (
-              <button
-                type="button"
-                aria-label="Next"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveIndex((i) => Math.min(media.length - 1, i + 1));
-                }}
-                className="absolute right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm"
-              >
+              <button type="button" aria-label="Next"
+                onClick={(e) => { e.stopPropagation(); setActiveIndex((i) => Math.min(media.length - 1, i + 1)); }}
+                className="absolute right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm">
                 <ChevronRight />
               </button>
             )}
             <div className="absolute top-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
               {media.map((m, i) => (
-                <span
-                  key={m._id || i}
-                  className={`h-1.5 rounded-full transition-all ${
-                    i === activeIndex ? "w-5 bg-white" : "w-1.5 bg-white/40"
-                  }`}
+                <span key={m._id || i}
+                  className={`h-1.5 rounded-full transition-all ${i === activeIndex ? "w-5 bg-white" : "w-1.5 bg-white/40"}`}
                 />
               ))}
             </div>
@@ -223,177 +254,98 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
           </span>
         )}
 
-        {/* Tagged brands / shoppable items — shown by default, toggled by single tap */}
+        {/* Liquid glass tags */}
         {showTags && (
-          <TagOverlay
-            tags={currentMedia?.tags}
-            postId={post._id}
-            mediaIndex={activeIndex}
-          />
+          <TagOverlay tags={currentMedia?.tags} postId={post._id} mediaIndex={activeIndex} />
         )}
 
-        {/* Top overlay — "Explore" label + back arrow */}
-        <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-3 px-4 pt-12">
-          <GlassButton
-            ariaLabel="Back to Explore"
-            onClick={() => {
-              window.location.href = "/explore";
-            }}
-            className="h-10 w-10"
-          >
-            {/* Back chevron */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-5 w-5"
-            >
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </GlassButton>
-          <span className="text-base font-semibold text-white drop-shadow-sm">
-            Explore
-          </span>
-        </div>
-
-        {/* Heart burst on double-tap like */}
+        {/* Heart burst on double-tap */}
         {showHeart && (
           <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
-            <HeartIcon
-              filled
-              className="h-20 w-20 animate-heart-pop text-brand-secondary drop-shadow-lg"
-            />
+            <HeartIcon filled className="h-20 w-20 animate-heart-pop text-brand-secondary drop-shadow-lg" />
           </div>
         )}
+      </div>
 
-        {/* Right action rail */}
-        <div
-          className="absolute right-3 bottom-44 z-20 flex flex-col items-center gap-5"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            type="button"
-            aria-label="Like"
-            onClick={triggerLike}
-            className="flex flex-col items-center gap-1"
-          >
-            <GlassButton ariaLabel="Like" className="h-11 w-11">
-              <HeartIcon
-                filled={liked}
-                className={liked ? "h-6 w-6 text-brand-secondary" : "h-6 w-6"}
-              />
-            </GlassButton>
-            <span className="text-xs font-medium text-white">
+      {/* ── BOTTOM ACTIONS (like the app: like / comment / share / save) ── */}
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-4">
+          {/* Like */}
+          <button type="button" aria-label="Like" onClick={triggerLike}
+            className="flex items-center gap-1.5">
+            <HeartIcon filled={liked}
+              className={liked ? "h-6 w-6 text-red-500" : "h-6 w-6 text-white"} />
+            <span className="text-sm font-medium text-white">
               {formatCount((post.likeCount || 0) + (liked && !post.isLikedByCurrentUser ? 1 : 0))}
             </span>
           </button>
 
-          <button
-            type="button"
-            aria-label="Comments"
+          {/* Comment */}
+          <button type="button" aria-label="Comments"
             onClick={() => setShowSharePrompt(true)}
-            className="flex flex-col items-center gap-1"
-          >
-            <GlassButton ariaLabel="Comments" className="h-11 w-11">
-              <ChatIcon className="h-6 w-6" />
-            </GlassButton>
-            <span className="text-xs font-medium text-white">
+            className="flex items-center gap-1.5">
+            <ChatIcon className="h-6 w-6 text-white" />
+            <span className="text-sm font-medium text-white">
               {formatCount(post.commentCount)}
             </span>
           </button>
 
-          <button
-            type="button"
-            aria-label="Share"
-            onClick={handleShare}
-            className="flex flex-col items-center gap-1"
-          >
-            <GlassButton ariaLabel="Share" className="h-11 w-11">
-              <ShareIcon className="h-5 w-5" />
-            </GlassButton>
-          </button>
-
-          <button
-            type="button"
-            aria-label="Save"
-            onClick={handleSave}
-            className="flex flex-col items-center gap-1"
-          >
-            <GlassButton ariaLabel="Save" className="h-11 w-11">
-              <BookmarkIcon
-                filled={saved}
-                className={saved ? "h-5 w-5 text-brand-secondary" : "h-5 w-5"}
-              />
-            </GlassButton>
+          {/* Share */}
+          <button type="button" aria-label="Share" onClick={handleShare}>
+            <ShareIcon className="h-6 w-6 text-white" />
           </button>
         </div>
 
-        {/* Bottom overlay: user + caption */}
-        <div
-          className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-4 pb-6 pt-16"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center gap-2.5">
-            {user?.profilePicture ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={user.profilePicture}
-                alt={user.username || "User"}
-                className="h-9 w-9 rounded-full border-2 border-white object-cover"
-              />
-            ) : (
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#4b5e70] to-[#a1b8c4] text-sm font-semibold text-white">
-                {initials}
-              </div>
-            )}
-            <span className="text-sm font-semibold text-white">
-              {user?.username ? `@${user.username}` : "OutfitR user"}
-            </span>
-          </div>
-          {post.description && (
-            <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-white/90">
-              {post.description}
-            </p>
-          )}
-        </div>
+        {/* Save */}
+        <button type="button" aria-label="Save" onClick={handleSave}>
+          <BookmarkIcon filled={saved}
+            className={saved ? "h-6 w-6 text-brand-secondary" : "h-6 w-6 text-white"} />
+        </button>
       </div>
 
-      {/* Inline nudge after an interaction attempt */}
+      {/* Caption */}
+      {post.description && (
+        <div className="px-4 pb-4">
+          <p className="text-sm leading-relaxed text-white/90">
+            <span className="font-semibold">{user?.username || "user"}</span>{" "}
+            {post.description}
+          </p>
+        </div>
+      )}
+
+      {/* Affiliate label */}
+      <div className="flex justify-end px-4 pb-2">
+        <span
+          className="rounded-full px-3 py-1 text-xs text-white/70"
+          style={{
+            backgroundColor: "rgba(255,255,255,0.12)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+          }}
+        >
+          Affiliate/Sponsored
+        </span>
+      </div>
+
+      {/* Nudge prompt */}
       {showSharePrompt && (
         <div
           className="fixed inset-x-0 bottom-[140px] z-50 mx-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-white/15 bg-[#10161d]/95 p-4 text-center shadow-xl backdrop-blur-md sm:max-w-lg"
           role="dialog"
         >
           <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
-            <Image
-              src="/brand/logo-mark.png"
-              alt="OutfitR"
-              width={28}
-              height={28}
-              className="rounded-md"
-            />
+            <Image src="/brand/logo-mark.png" alt="OutfitR" width={28} height={28} className="rounded-md" />
           </div>
           <p className="text-sm font-medium text-white">
             Open the app to like, comment and save
           </p>
           <div className="mt-3 flex justify-center gap-2">
-            <a
-              href={APP_STORE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-full bg-brand-secondary px-4 py-2 text-sm font-semibold text-brand-primary-dark"
-            >
+            <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer"
+              className="rounded-full bg-brand-secondary px-4 py-2 text-sm font-semibold text-brand-primary-dark">
               Open app
             </a>
-            <button
-              type="button"
-              onClick={() => setShowSharePrompt(false)}
-              className="rounded-full border border-white/20 px-4 py-2 text-sm text-white/80"
-            >
+            <button type="button" onClick={() => setShowSharePrompt(false)}
+              className="rounded-full border border-white/20 px-4 py-2 text-sm text-white/80">
               Not now
             </button>
           </div>
