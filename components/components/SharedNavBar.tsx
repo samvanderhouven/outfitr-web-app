@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CompassIcon, ImageStackIcon } from "./icons";
 import {
@@ -17,88 +17,58 @@ export default function SharedNavBar({
 }) {
   const router = useRouter();
   const [rememberedPostId, setRememberedPostId] = useState<string | null>(null);
-
-  // Refs to measure the two pill buttons so we can slide the indicator
-  const outfitRef = useRef<HTMLButtonElement>(null);
-  const exploreRef = useRef<HTMLButtonElement>(null);
-  const [indicatorStyle, setIndicatorStyle] = useState<{
-    left: number;
-    width: number;
-  }>({ left: 0, width: 0 });
+  // Track which tab is "visually" active so we can animate before navigation
+  const [visualActive, setVisualActive] = useState<"outfit" | "explore">(
+    activePostId ? "outfit" : "explore"
+  );
 
   useEffect(() => {
     if (activePostId) {
       rememberSharedPost(activePostId);
+      setVisualActive("outfit");
     } else {
       setRememberedPostId(getRememberedSharedPost());
+      setVisualActive("explore");
     }
   }, [activePostId]);
 
-  const isOnPost = Boolean(activePostId);
   const outfitTargetId = activePostId ?? rememberedPostId;
-  const showOutfitTab = isOnPost || Boolean(rememberedPostId);
+  const showOutfitTab = Boolean(activePostId) || Boolean(rememberedPostId);
   const isDark = variant === "dark";
 
-  // Measure the active pill and set the sliding indicator position
-  useEffect(() => {
-    const measure = () => {
-      const activeRef = isOnPost ? outfitRef : exploreRef;
-      const el = activeRef.current;
-      if (!el) return;
-      const parent = el.parentElement;
-      if (!parent) return;
-      const parentRect = parent.getBoundingClientRect();
-      const elRect = el.getBoundingClientRect();
-      setIndicatorStyle({
-        left: elRect.left - parentRect.left,
-        width: elRect.width,
-      });
-    };
-    // Use rAF so the DOM has definitely painted before we measure
-    const raf = requestAnimationFrame(measure);
-    return () => cancelAnimationFrame(raf);
-  }, [isOnPost, rememberedPostId]);
+  const handleOutfitClick = () => {
+    if (!outfitTargetId) return;
+    setVisualActive("outfit");
+    setTimeout(() => router.push(`/post/${outfitTargetId}`), 250);
+  };
+
+  const handleExploreClick = () => {
+    setVisualActive("explore");
+    setTimeout(() => router.push("/explore"), 250);
+  };
+
+  const isOutfitActive = visualActive === "outfit";
+  const isExploreActive = visualActive === "explore";
 
   return (
     <div className="fixed inset-x-0 bottom-[76px] z-40 flex justify-center px-4">
       <nav
         aria-label="OutfitR navigation"
-        className={`relative flex items-center rounded-full border p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.15)] backdrop-blur-2xl ${
-          isDark
-            ? "border-white/15 bg-white/10"
-            : "border-white/40 bg-white/30"
+        className={`flex items-center gap-1.5 rounded-full border p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.15)] backdrop-blur-2xl ${
+          isDark ? "border-white/15 bg-white/10" : "border-white/40 bg-white/30"
         }`}
       >
-        {/* Sliding active indicator */}
-        {indicatorStyle.width > 0 && (
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1.5 bottom-1.5 rounded-full bg-brand-primary shadow-sm"
-            style={{
-              left: indicatorStyle.left,
-              width: indicatorStyle.width,
-              transition: "left 280ms cubic-bezier(0.34, 1.2, 0.64, 1), width 280ms cubic-bezier(0.34, 1.2, 0.64, 1)",
-            }}
-          />
-        )}
-
         {showOutfitTab && (
           <button
-            ref={outfitRef}
             type="button"
-            onClick={() => {
-              if (!outfitTargetId) return;
-              // Slide indicator immediately before navigation
-              const el = outfitRef.current;
-              const parent = el?.parentElement;
-              if (el && parent) {
-                const parentRect = parent.getBoundingClientRect();
-                const elRect = el.getBoundingClientRect();
-                setIndicatorStyle({ left: elRect.left - parentRect.left, width: elRect.width });
-              }
-              setTimeout(() => router.push(`/post/${outfitTargetId}`), 200);
+            onClick={handleOutfitClick}
+            style={{
+              transition: "background-color 250ms ease, color 250ms ease, box-shadow 250ms ease",
+              backgroundColor: isOutfitActive ? "var(--color-primary)" : "transparent",
+              color: isOutfitActive ? "white" : isDark ? "rgba(255,255,255,0.8)" : "rgba(16,24,40,0.8)",
+              boxShadow: isOutfitActive ? "0 1px 3px rgba(0,0,0,0.2)" : "none",
             }}
-            className={pillClasses(isOnPost, isDark)}
+            className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold active:scale-95"
           >
             <ImageStackIcon className="h-[18px] w-[18px]" />
             Outfit
@@ -106,20 +76,15 @@ export default function SharedNavBar({
         )}
 
         <button
-          ref={exploreRef}
           type="button"
-          onClick={() => {
-            // Slide indicator immediately before navigation
-            const el = exploreRef.current;
-            const parent = el?.parentElement;
-            if (el && parent) {
-              const parentRect = parent.getBoundingClientRect();
-              const elRect = el.getBoundingClientRect();
-              setIndicatorStyle({ left: elRect.left - parentRect.left, width: elRect.width });
-            }
-            setTimeout(() => router.push("/explore"), 200);
+          onClick={handleExploreClick}
+          style={{
+            transition: "background-color 250ms ease, color 250ms ease, box-shadow 250ms ease",
+            backgroundColor: isExploreActive ? "var(--color-primary)" : "transparent",
+            color: isExploreActive ? "white" : isDark ? "rgba(255,255,255,0.8)" : "rgba(16,24,40,0.8)",
+            boxShadow: isExploreActive ? "0 1px 3px rgba(0,0,0,0.2)" : "none",
           }}
-          className={pillClasses(!isOnPost, isDark)}
+          className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold active:scale-95"
         >
           <CompassIcon className="h-[18px] w-[18px]" />
           Explore
@@ -127,11 +92,4 @@ export default function SharedNavBar({
       </nav>
     </div>
   );
-}
-
-function pillClasses(isActive: boolean, isDark: boolean) {
-  const base =
-    "relative z-10 flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors duration-200 active:scale-95";
-  if (isActive) return `${base} text-white`;
-  return `${base} ${isDark ? "text-white/80" : "text-brand-text/80"}`;
 }
