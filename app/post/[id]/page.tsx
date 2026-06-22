@@ -30,9 +30,7 @@ export async function generateMetadata({
   const post = await fetchPost(id);
 
   if (!post) {
-    return {
-      title: `Post not found | ${SITE_NAME}`,
-    };
+    return { title: `Post not found | ${SITE_NAME}` };
   }
 
   const user = getPostUser(post);
@@ -40,8 +38,7 @@ export async function generateMetadata({
   const title = user?.username
     ? `@${user.username} on ${SITE_NAME}`
     : `Post on ${SITE_NAME}`;
-  const description =
-    post.description || "Check out this outfit on OutfitR.";
+  const description = post.description || "Check out this outfit on OutfitR.";
 
   return {
     title,
@@ -69,9 +66,7 @@ export default async function PostPage({
   const { id } = await params;
   const post = await fetchPost(id);
 
-  if (!post) {
-    notFound();
-  }
+  if (!post) notFound();
 
   return (
     <div className="min-h-screen bg-black pb-36">
