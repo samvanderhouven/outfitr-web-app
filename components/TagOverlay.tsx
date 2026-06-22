@@ -83,15 +83,15 @@ function Tag({
         {/* Liquid glass tooltip body */}
         <div
           style={{
-            background: "rgba(255,255,255,0.18)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            border: "0.5px solid rgba(255,255,255,0.55)",
+            background: "rgba(255,255,255,0.25)",
+            backdropFilter: "blur(20px) saturate(180%)",
+            WebkitBackdropFilter: "blur(20px) saturate(180%)",
+            border: "0.5px solid rgba(255,255,255,0.7)",
             borderRadius: "8px",
             padding: "5px 13px",
             minWidth: 70,
             maxWidth: 180,
-            boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.4)",
           }}
         >
           <span
@@ -99,7 +99,7 @@ function Tag({
               color: "white",
               fontSize: "12px",
               fontWeight: 600,
-              textShadow: "0 1px 3px rgba(0,0,0,0.35)",
+              textShadow: "0 1px 4px rgba(0,0,0,0.5)",
               display: "block",
               textAlign: "center",
               whiteSpace: "nowrap",
@@ -117,7 +117,7 @@ function Tag({
             height: 0,
             borderLeft: "6px solid transparent",
             borderRight: "6px solid transparent",
-            borderTop: "6px solid rgba(255,255,255,0.45)",
+            borderTop: "6px solid rgba(255,255,255,0.6)",
           }}
         />
       </button>
