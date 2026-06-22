@@ -40,7 +40,7 @@ export default function AppStoreBar({
                 : "truncate text-sm font-medium text-brand-text"
             }
           >
-            Krijg de volledige ervaring in de app
+            Get the full experience in the app
           </p>
         </div>
         <a

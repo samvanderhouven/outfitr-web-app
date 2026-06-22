@@ -7,7 +7,7 @@ import { getExplorePosts } from "@/lib/outfitr-api";
 import { SITE_DESCRIPTION } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: "Ontdek | OutfitR",
+  title: "Explore | OutfitR",
   description: SITE_DESCRIPTION,
 };
 
@@ -36,21 +36,20 @@ export default async function ExplorePage() {
       <main className="mx-auto max-w-6xl px-4 pb-10 pt-6 sm:px-6">
         <div className="mb-6">
           <h1 className="font-display text-2xl font-semibold text-brand-text sm:text-3xl">
-            Ontdek
+            Explore
           </h1>
           <p className="mt-1 text-sm text-brand-light-text">
-            Stijlinspiratie van de OutfitR-community.
+            Style inspiration from the OutfitR community.
           </p>
         </div>
 
         {loadError ? (
           <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-brand-border bg-white py-20 text-center">
             <p className="font-display text-xl text-brand-text">
-              Even niet beschikbaar
+              Temporarily unavailable
             </p>
             <p className="max-w-xs text-sm text-brand-light-text">
-              We konden de explore-pagina niet laden. Probeer het zo
-              opnieuw, of open de app.
+              We couldn&apos;t load the explore page. Please try again, or open the app.
             </p>
           </div>
         ) : (

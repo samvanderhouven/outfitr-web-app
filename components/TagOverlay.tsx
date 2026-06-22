@@ -14,12 +14,13 @@ export default function TagOverlay({
 }) {
   if (!tags || tags.length === 0) return null;
 
-  const handleTagClick = (tag: OutfitrMediaTag) => {
+  const handleTagClick = (e: React.MouseEvent, tag: OutfitrMediaTag) => {
+    // Prevent the image tap handler from firing (which would toggle tags)
+    e.stopPropagation();
+
     const productUrl = tag.productUrl as string | undefined;
     if (!productUrl) return;
 
-    // Best-effort click tracking, mirroring the app's affiliate click
-    // registration. Never block the redirect on this.
     fetch(`/api/post-click/${postId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -42,19 +43,19 @@ export default function TagOverlay({
       {tags.map((tag, index) => {
         const x = (tag.x_position as number | undefined) ?? 50;
         const y = (tag.y_position as number | undefined) ?? 50;
-        const label = tag.brandName || tag.productName || "Merk";
+        const label = tag.brandName || tag.productName || "Brand";
         const clickable = Boolean(tag.productUrl);
 
         return (
           <div
             key={tag._id || index}
             style={{ left: `${x}%`, top: `${y}%` }}
-            className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
+            className="absolute z-20 -translate-x-1/2 -translate-y-1/2 animate-tag-pop"
           >
             <button
               type="button"
               disabled={!clickable}
-              onClick={() => handleTagClick(tag)}
+              onClick={(e) => handleTagClick(e, tag)}
               className="flex items-center gap-1 rounded-full border border-white/50 bg-black/35 px-3 py-1.5 text-xs font-semibold text-white shadow-md backdrop-blur-md transition-transform active:scale-95 disabled:active:scale-100"
             >
               <TagIcon className="h-3 w-3 shrink-0" />

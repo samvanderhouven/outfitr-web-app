@@ -40,7 +40,18 @@ export async function getExplorePosts(params?: {
   if (params?.cursor) query.set("cursor", params.cursor);
   if (params?.limit) query.set("limit", String(params.limit));
   const qs = query.toString();
-  return apiFetch<ExploreResponse>(`/explore${qs ? `?${qs}` : ""}`);
+
+  // The real API is now public (no token required).
+  // The API returns data.posts (and previously used data.results in some versions).
+  // We normalise both so the web app always gets data.posts.
+  const raw = await apiFetch<ExploreResponse>(`/explore${qs ? `?${qs}` : ""}`);
+
+  // Normalise: if the API returned `results` instead of `posts`, remap it.
+  if (raw?.data && !raw.data.posts && (raw.data as Record<string, unknown>)["results"]) {
+    raw.data.posts = (raw.data as Record<string, unknown>)["results"] as ExploreResponse["data"]["posts"];
+  }
+
+  return raw;
 }
 
 export async function getPostById(id: string): Promise<PostByIdResponse> {

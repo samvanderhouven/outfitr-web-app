@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import type { OutfitrPost } from "@/lib/types";
 import { formatCount, getInitial, getPostUser } from "@/lib/post-utils";
 import {
-  BackArrowIcon,
   BookmarkIcon,
   ChatIcon,
   ChevronLeft,
@@ -50,14 +49,17 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
   const [saved, setSaved] = useState(
     Boolean(post.isSavedByCurrentUser ?? post.savedByCurrentUser),
   );
+  // Tags visible by default on open, toggled by single tap
+  const [showTags, setShowTags] = useState(true);
   const clickedRef = useRef(false);
+  const lastTapRef = useRef<number>(0);
+  const doubleTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const initials = getInitial(user?.fullName || user?.username);
   const currentMedia = media[activeIndex];
   const isVideo = currentMedia?.mediaType === "video";
 
-  // Register a single "click" against the post when the page is actually
-  // viewed, mirroring the app's click-tracking on shared post opens.
+  // Register a single "click" against the post when the page is actually viewed
   useEffect(() => {
     if (clickedRef.current) return;
     clickedRef.current = true;
@@ -68,19 +70,48 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
         mediaIndex: 0,
         referrer: typeof document !== "undefined" ? document.referrer : "",
       }),
-    }).catch(() => {
-      // Click tracking is best-effort; ignore failures.
-    });
+    }).catch(() => {});
   }, [post._id]);
 
-  const triggerLikePrompt = () => {
+  const triggerLikeAnimation = useCallback(() => {
+    setShowHeart(true);
+    window.setTimeout(() => setShowHeart(false), 700);
+  }, []);
+
+  const triggerLike = useCallback(() => {
     if (!liked) {
-      setShowHeart(true);
-      window.setTimeout(() => setShowHeart(false), 700);
+      triggerLikeAnimation();
     }
     setLiked((v) => !v);
     setShowSharePrompt(true);
-  };
+  }, [liked, triggerLikeAnimation]);
+
+  // Double-tap to like on the image area
+  const handleImageTap = useCallback(() => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+
+    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      // Double tap detected → like
+      if (doubleTapTimerRef.current) {
+        clearTimeout(doubleTapTimerRef.current);
+        doubleTapTimerRef.current = null;
+      }
+      if (!liked) {
+        triggerLikeAnimation();
+        setLiked(true);
+        setShowSharePrompt(true);
+      }
+      lastTapRef.current = 0;
+    } else {
+      // First tap → schedule single-tap action (toggle tags)
+      lastTapRef.current = now;
+      doubleTapTimerRef.current = setTimeout(() => {
+        setShowTags((v) => !v);
+        doubleTapTimerRef.current = null;
+      }, DOUBLE_TAP_DELAY);
+    }
+  }, [liked, triggerLikeAnimation]);
 
   const handleSave = () => {
     setSaved((v) => !v);
@@ -94,7 +125,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
       try {
         await navigator.share({
           title: "OutfitR",
-          text: "Bekijk deze post op OutfitR",
+          text: "Check out this outfit on OutfitR",
           url,
         });
         return;
@@ -112,14 +143,18 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
 
   return (
     <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-black sm:max-w-lg">
-      {/* Media */}
-      <div className="relative flex-1 overflow-hidden bg-black">
+      {/* Full-screen media — fills viewport like the app reel */}
+      <div
+        className="relative flex-1 overflow-hidden bg-black"
+        style={{ minHeight: "100svh" }}
+        onClick={handleImageTap}
+      >
         {currentMedia?.mediaUrl ? (
           isVideo ? (
             <video
               key={currentMedia.mediaUrl}
               src={currentMedia.mediaUrl}
-              className="absolute inset-0 h-full w-full object-contain"
+              className="absolute inset-0 h-full w-full object-cover"
               controls
               playsInline
               autoPlay
@@ -131,12 +166,12 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
             <img
               src={currentMedia.mediaUrl}
               alt={post.description || "OutfitR post"}
-              className="absolute inset-0 h-full w-full object-contain"
+              className="absolute inset-0 h-full w-full object-cover"
             />
           )
         ) : (
           <div className="flex h-full w-full items-center justify-center text-white/60">
-            Geen media beschikbaar
+            No media available
           </div>
         )}
 
@@ -146,8 +181,11 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
             {activeIndex > 0 && (
               <button
                 type="button"
-                aria-label="Vorige media"
-                onClick={() => setActiveIndex((i) => Math.max(0, i - 1))}
+                aria-label="Previous"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveIndex((i) => Math.max(0, i - 1));
+                }}
                 className="absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm"
               >
                 <ChevronLeft />
@@ -156,10 +194,11 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
             {activeIndex < media.length - 1 && (
               <button
                 type="button"
-                aria-label="Volgende media"
-                onClick={() =>
-                  setActiveIndex((i) => Math.min(media.length - 1, i + 1))
-                }
+                aria-label="Next"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveIndex((i) => Math.min(media.length - 1, i + 1));
+                }}
                 className="absolute right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm"
               >
                 <ChevronRight />
@@ -184,27 +223,45 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
           </span>
         )}
 
-        {/* Tagged brands / shoppable items on this media */}
-        <TagOverlay
-          tags={currentMedia?.tags}
-          postId={post._id}
-          mediaIndex={activeIndex}
-        />
+        {/* Tagged brands / shoppable items — shown by default, toggled by single tap */}
+        {showTags && (
+          <TagOverlay
+            tags={currentMedia?.tags}
+            postId={post._id}
+            mediaIndex={activeIndex}
+          />
+        )}
 
-        {/* Top overlay */}
-        <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 pt-4">
+        {/* Top overlay — "Explore" label + back arrow */}
+        <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-3 px-4 pt-12">
           <GlassButton
-            ariaLabel="Terug naar ontdekken"
-            onClick={() => {
+            ariaLabel="Back to Explore"
+            onClick={(e) => {
+              (e as React.MouseEvent).stopPropagation();
               window.location.href = "/explore";
             }}
             className="h-10 w-10"
           >
-            <BackArrowIcon />
+            {/* Back chevron */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-5 w-5"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
           </GlassButton>
+          <span className="text-base font-semibold text-white drop-shadow-sm">
+            Explore
+          </span>
         </div>
 
-        {/* Heart burst on like */}
+        {/* Heart burst on double-tap like */}
         {showHeart && (
           <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
             <HeartIcon
@@ -215,14 +272,17 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
         )}
 
         {/* Right action rail */}
-        <div className="absolute right-3 bottom-44 z-20 flex flex-col items-center gap-5">
+        <div
+          className="absolute right-3 bottom-44 z-20 flex flex-col items-center gap-5"
+          onClick={(e) => e.stopPropagation()}
+        >
           <button
             type="button"
-            aria-label="Vind ik leuk"
-            onClick={triggerLikePrompt}
+            aria-label="Like"
+            onClick={triggerLike}
             className="flex flex-col items-center gap-1"
           >
-            <GlassButton ariaLabel="Vind ik leuk" className="h-11 w-11">
+            <GlassButton ariaLabel="Like" className="h-11 w-11">
               <HeartIcon
                 filled={liked}
                 className={liked ? "h-6 w-6 text-brand-secondary" : "h-6 w-6"}
@@ -235,11 +295,11 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
 
           <button
             type="button"
-            aria-label="Reacties bekijken"
+            aria-label="Comments"
             onClick={() => setShowSharePrompt(true)}
             className="flex flex-col items-center gap-1"
           >
-            <GlassButton ariaLabel="Reacties" className="h-11 w-11">
+            <GlassButton ariaLabel="Comments" className="h-11 w-11">
               <ChatIcon className="h-6 w-6" />
             </GlassButton>
             <span className="text-xs font-medium text-white">
@@ -249,22 +309,22 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
 
           <button
             type="button"
-            aria-label="Delen"
+            aria-label="Share"
             onClick={handleShare}
             className="flex flex-col items-center gap-1"
           >
-            <GlassButton ariaLabel="Delen" className="h-11 w-11">
+            <GlassButton ariaLabel="Share" className="h-11 w-11">
               <ShareIcon className="h-5 w-5" />
             </GlassButton>
           </button>
 
           <button
             type="button"
-            aria-label="Opslaan"
+            aria-label="Save"
             onClick={handleSave}
             className="flex flex-col items-center gap-1"
           >
-            <GlassButton ariaLabel="Opslaan" className="h-11 w-11">
+            <GlassButton ariaLabel="Save" className="h-11 w-11">
               <BookmarkIcon
                 filled={saved}
                 className={saved ? "h-5 w-5 text-brand-secondary" : "h-5 w-5"}
@@ -274,13 +334,16 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
         </div>
 
         {/* Bottom overlay: user + caption */}
-        <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-4 pb-6 pt-16">
+        <div
+          className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-4 pb-6 pt-16"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex items-center gap-2.5">
             {user?.profilePicture ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={user.profilePicture}
-                alt={user.username || "Gebruiker"}
+                alt={user.username || "User"}
                 className="h-9 w-9 rounded-full border-2 border-white object-cover"
               />
             ) : (
@@ -289,7 +352,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
               </div>
             )}
             <span className="text-sm font-semibold text-white">
-              {user?.username ? `@${user.username}` : "OutfitR-gebruiker"}
+              {user?.username ? `@${user.username}` : "OutfitR user"}
             </span>
           </div>
           {post.description && (
@@ -316,7 +379,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
             />
           </div>
           <p className="text-sm font-medium text-white">
-            Open de app om te liken, reageren en op te slaan
+            Open the app to like, comment and save
           </p>
           <div className="mt-3 flex justify-center gap-2">
             <a
@@ -332,7 +395,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
               onClick={() => setShowSharePrompt(false)}
               className="rounded-full border border-white/20 px-4 py-2 text-sm text-white/80"
             >
-              Niet nu
+              Not now
             </button>
           </div>
         </div>

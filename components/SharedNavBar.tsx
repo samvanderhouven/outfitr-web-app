@@ -8,27 +8,14 @@ import {
   rememberSharedPost,
 } from "@/lib/shared-post-memory";
 
-/**
- * Floating liquid-glass navbar shown on both the shared post page and the
- * explore page. Lets someone who landed on a shared outfit link hop into
- * Explore to browse more, and find their way back to the original post.
- *
- * - On a post page: "Outfit" is active, and we remember this post id.
- * - On the explore page: "Verkennen" is active, "Outfit" goes back to the
- *   last remembered shared post (or is hidden if none is known yet).
- */
 export default function SharedNavBar({
   activePostId,
   variant = "light",
 }: {
-  /** Pass the current post id when rendered on /post/[id]. */
   activePostId?: string;
   variant?: "light" | "dark";
 }) {
   const router = useRouter();
-  // Lazy initializer reads sessionStorage once on mount (client-only;
-  // returns null during SSR, which is fine since we only need this on the
-  // explore page where there's no post id of our own anyway).
   const [rememberedPostId] = useState<string | null>(() =>
     activePostId ? null : getRememberedSharedPost(),
   );
@@ -47,7 +34,7 @@ export default function SharedNavBar({
   return (
     <div className="fixed inset-x-0 bottom-[76px] z-40 flex justify-center px-4">
       <nav
-        aria-label="OutfitR navigatie"
+        aria-label="OutfitR navigation"
         className={`flex items-center gap-1.5 rounded-full border p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.15)] backdrop-blur-2xl ${
           isDark
             ? "border-white/15 bg-white/10"
@@ -73,7 +60,7 @@ export default function SharedNavBar({
           className={navPillClasses(!isOnPost, isDark, false)}
         >
           <CompassIcon className="h-[18px] w-[18px]" />
-          Verkennen
+          Explore
         </button>
       </nav>
     </div>

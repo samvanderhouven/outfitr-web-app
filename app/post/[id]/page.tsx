@@ -31,17 +31,17 @@ export async function generateMetadata({
 
   if (!post) {
     return {
-      title: `Post niet gevonden | ${SITE_NAME}`,
+      title: `Post not found | ${SITE_NAME}`,
     };
   }
 
   const user = getPostUser(post);
   const media = getPrimaryMedia(post);
   const title = user?.username
-    ? `@${user.username} op ${SITE_NAME}`
-    : `Post op ${SITE_NAME}`;
+    ? `@${user.username} on ${SITE_NAME}`
+    : `Post on ${SITE_NAME}`;
   const description =
-    post.description || "Bekijk deze outfit op OutfitR.";
+    post.description || "Check out this outfit on OutfitR.";
 
   return {
     title,

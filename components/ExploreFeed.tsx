@@ -60,10 +60,10 @@ export default function ExploreFeed({
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-24 text-center">
         <p className="font-display text-xl text-brand-text">
-          Nog geen posts om te ontdekken
+          Nothing to discover yet
         </p>
         <p className="max-w-xs text-sm text-brand-light-text">
-          Kom snel terug, of open de app voor de volledige ervaring.
+          Check back soon, or open the app for the full experience.
         </p>
       </div>
     );
@@ -89,7 +89,7 @@ export default function ExploreFeed({
 
       {!hasMore && posts.length > 0 && (
         <p className="py-8 text-center text-xs uppercase tracking-wide text-brand-light-text">
-          Je hebt alles gezien
+          You&apos;ve seen everything
         </p>
       )}
     </div>
