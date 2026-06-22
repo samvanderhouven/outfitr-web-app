@@ -1,5 +1,5 @@
 import "server-only";
-import type { ExploreResponse, PostByIdResponse } from "./types";
+import type { ExploreResponse, OutfitrPost, PostByIdResponse } from "./types";
  
 const API_BASE_URL =
   process.env.OUTFITR_API_BASE_URL || "https://api.outfitr.nl/api/v1";
@@ -25,6 +25,21 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
  
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractPosts(data: any): OutfitrPost[] {
+  return data?.results ?? data?.posts ?? [];
+}
+ 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractCursor(data: any): string | null {
+  return data?.nextCursor ?? null;
+}
+ 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractHasMore(data: any): boolean {
+  return Boolean(data?.hasMore);
+}
+ 
 export async function getExplorePosts(params?: {
   cursor?: string | null;
   limit?: number;
@@ -35,18 +50,19 @@ export async function getExplorePosts(params?: {
   const qs = query.toString();
  
   // No token required — Explore API is public.
-  // The real API returns data.results; we normalise it to data.posts
-  // so the rest of the app stays consistent.
-  const raw = await apiFetch<Record<string, unknown>>(`/explore${qs ? `?${qs}` : ""}`);
- 
-  const data = (raw?.data ?? raw) as Record<string, unknown>;
-  const posts = (data["results"] ?? data["posts"] ?? []) as ExploreResponse["data"]["posts"];
-  const nextCursor = (data["nextCursor"] ?? null) as string | null;
-  const hasMore = Boolean(data["hasMore"]);
+  // Real API returns { data: { results: [...] } } or { results: [...] }
+  // We normalise both into ExploreResponse shape ({ data: { posts: [...] } })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const raw = await apiFetch<any>(`/explore${qs ? `?${qs}` : ""}`);
+  const data = raw?.data ?? raw;
  
   return {
     success: true,
-    data: { posts, nextCursor, hasMore },
+    data: {
+      posts: extractPosts(data),
+      nextCursor: extractCursor(data),
+      hasMore: extractHasMore(data),
+    },
   };
 }
  
