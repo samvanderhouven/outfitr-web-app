@@ -1,27 +1,31 @@
 "use client";
 
-const STORAGE_KEY = "outfitr:lastSharedPostId";
+// Two separate keys:
+// ORIGINAL = the post the visitor first landed on via a share link (never overwritten)
+// LAST     = the most recent post they viewed (used for the "Outfit" tab when on Explore)
+const ORIGINAL_KEY = "outfitr:originalSharedPostId";
 
 /**
- * Remembers which shared post the visitor originally landed on, so the
- * floating navbar's "Outfit" pill can take them back to it after they've
- * wandered off into Explore. Lives in sessionStorage: cleared when the tab
- * closes, scoped per-visitor, no server/account needed (there is no web
- * login).
+ * Call this ONLY when the visitor arrives via a shared link (i.e. on /post/[id]).
+ * We only store it if nothing is stored yet — so it never gets overwritten
+ * by posts the user browses to afterwards.
  */
 export function rememberSharedPost(postId: string) {
   if (typeof window === "undefined" || !postId) return;
   try {
-    window.sessionStorage.setItem(STORAGE_KEY, postId);
+    // Only set once per session — the original entry point
+    if (!window.sessionStorage.getItem(ORIGINAL_KEY)) {
+      window.sessionStorage.setItem(ORIGINAL_KEY, postId);
+    }
   } catch {
-    // sessionStorage can be unavailable (private mode, etc.) - non-fatal.
+    // sessionStorage unavailable (private mode etc.) — non-fatal
   }
 }
 
 export function getRememberedSharedPost(): string | null {
   if (typeof window === "undefined") return null;
   try {
-    return window.sessionStorage.getItem(STORAGE_KEY);
+    return window.sessionStorage.getItem(ORIGINAL_KEY);
   } catch {
     return null;
   }
