@@ -1,15 +1,9 @@
 import "server-only";
-import type { ExploreResponse, OutfitrPost, PostByIdResponse } from "./types";
+import type { ExploreResponse, PostByIdResponse } from "./types";
  
 const API_BASE_URL =
   process.env.OUTFITR_API_BASE_URL || "https://api.outfitr.nl/api/v1";
  
-/**
- * All calls to the Outfitr backend happen from the server (route handlers /
- * server components), never directly from the browser. This sidesteps any
- * CORS restrictions on api.outfitr.nl, since the browser only ever talks to
- * our own Next.js app.
- */
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
@@ -18,7 +12,6 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
       ...init?.headers,
     },
-    // Explore + post detail pages should always reflect fresh data.
     cache: "no-store",
   });
  
@@ -41,20 +34,20 @@ export async function getExplorePosts(params?: {
   if (params?.limit) query.set("limit", String(params.limit));
   const qs = query.toString();
  
-  // The real API is now public (no token required).
-  // The API returns data.posts (and previously used data.results in some versions).
-  // We normalise both so the web app always gets data.posts.
-  const raw = await apiFetch<ExploreResponse>(`/explore${qs ? `?${qs}` : ""}`);
+  // No token required — Explore API is public.
+  // The real API returns data.results; we normalise it to data.posts
+  // so the rest of the app stays consistent.
+  const raw = await apiFetch<Record<string, unknown>>(`/explore${qs ? `?${qs}` : ""}`);
  
-  // Normalise: if the API returned `results` instead of `posts`, remap it.
-  if (raw?.data && !raw.data.posts) {
-    const rawData = raw.data as Record<string, unknown>;
-    if (rawData["results"]) {
-      raw.data = { ...raw.data, posts: rawData["results"] as OutfitrPost[] };
-    }
-  }
+  const data = (raw?.data ?? raw) as Record<string, unknown>;
+  const posts = (data["results"] ?? data["posts"] ?? []) as ExploreResponse["data"]["posts"];
+  const nextCursor = (data["nextCursor"] ?? null) as string | null;
+  const hasMore = Boolean(data["hasMore"]);
  
-  return raw;
+  return {
+    success: true,
+    data: { posts, nextCursor, hasMore },
+  };
 }
  
 export async function getPostById(id: string): Promise<PostByIdResponse> {
@@ -82,3 +75,4 @@ export async function registerPostClick(
     }),
   });
 }
+ 
