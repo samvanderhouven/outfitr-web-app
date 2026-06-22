@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CompassIcon, ImageStackIcon } from "./icons";
 import {
@@ -8,95 +8,130 @@ import {
   rememberSharedPost,
 } from "@/lib/shared-post-memory";
 
-/**
- * Floating liquid-glass navbar shown on both the shared post page and the
- * explore page. Lets someone who landed on a shared outfit link hop into
- * Explore to browse more, and find their way back to the original post.
- *
- * - On a post page: "Outfit" is active, and we remember this post id.
- * - On the explore page: "Verkennen" is active, "Outfit" goes back to the
- *   last remembered shared post (or is hidden if none is known yet).
- */
 export default function SharedNavBar({
   activePostId,
   variant = "light",
 }: {
-  /** Pass the current post id when rendered on /post/[id]. */
   activePostId?: string;
   variant?: "light" | "dark";
 }) {
   const router = useRouter();
-  // Lazy initializer reads sessionStorage once on mount (client-only;
-  // returns null during SSR, which is fine since we only need this on the
-  // explore page where there's no post id of our own anyway).
-  const [rememberedPostId] = useState<string | null>(() =>
-    activePostId ? null : getRememberedSharedPost(),
-  );
+  const [rememberedPostId, setRememberedPostId] = useState<string | null>(null);
+
+  // Refs to measure the two pill buttons so we can slide the indicator
+  const outfitRef = useRef<HTMLButtonElement>(null);
+  const exploreRef = useRef<HTMLButtonElement>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState<{
+    left: number;
+    width: number;
+  }>({ left: 0, width: 0 });
 
   useEffect(() => {
     if (activePostId) {
       rememberSharedPost(activePostId);
+    } else {
+      setRememberedPostId(getRememberedSharedPost());
     }
   }, [activePostId]);
 
   const isOnPost = Boolean(activePostId);
-  const outfitTargetId = activePostId || rememberedPostId;
-  const outfitDisabled = !isOnPost && !outfitTargetId;
+  const outfitTargetId = activePostId ?? rememberedPostId;
+  const showOutfitTab = isOnPost || Boolean(rememberedPostId);
   const isDark = variant === "dark";
+
+  // Measure the active pill and set the sliding indicator position
+  useEffect(() => {
+    const measure = () => {
+      const activeRef = isOnPost ? outfitRef : exploreRef;
+      const el = activeRef.current;
+      if (!el) return;
+      const parent = el.parentElement;
+      if (!parent) return;
+      const parentRect = parent.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      setIndicatorStyle({
+        left: elRect.left - parentRect.left,
+        width: elRect.width,
+      });
+    };
+    // Use rAF so the DOM has definitely painted before we measure
+    const raf = requestAnimationFrame(measure);
+    return () => cancelAnimationFrame(raf);
+  }, [isOnPost, rememberedPostId]);
 
   return (
     <div className="fixed inset-x-0 bottom-[76px] z-40 flex justify-center px-4">
       <nav
-        aria-label="OutfitR navigatie"
-        className={`flex items-center gap-1.5 rounded-full border p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.15)] backdrop-blur-2xl ${
+        aria-label="OutfitR navigation"
+        className={`relative flex items-center rounded-full border p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.15)] backdrop-blur-2xl ${
           isDark
             ? "border-white/15 bg-white/10"
             : "border-white/40 bg-white/30"
         }`}
       >
-        <button
-          type="button"
-          disabled={outfitDisabled}
-          onClick={() => {
-            if (!outfitTargetId) return;
-            router.push(`/post/${outfitTargetId}`);
-          }}
-          className={navPillClasses(isOnPost, isDark, outfitDisabled)}
-        >
-          <ImageStackIcon className="h-[18px] w-[18px]" />
-          Outfit
-        </button>
+        {/* Sliding active indicator */}
+        {indicatorStyle.width > 0 && (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1.5 bottom-1.5 rounded-full bg-brand-primary shadow-sm"
+            style={{
+              left: indicatorStyle.left,
+              width: indicatorStyle.width,
+              transition: "left 280ms cubic-bezier(0.34, 1.2, 0.64, 1), width 280ms cubic-bezier(0.34, 1.2, 0.64, 1)",
+            }}
+          />
+        )}
+
+        {showOutfitTab && (
+          <button
+            ref={outfitRef}
+            type="button"
+            onClick={() => {
+              if (!outfitTargetId) return;
+              // Slide indicator immediately before navigation
+              const el = outfitRef.current;
+              const parent = el?.parentElement;
+              if (el && parent) {
+                const parentRect = parent.getBoundingClientRect();
+                const elRect = el.getBoundingClientRect();
+                setIndicatorStyle({ left: elRect.left - parentRect.left, width: elRect.width });
+              }
+              setTimeout(() => router.push(`/post/${outfitTargetId}`), 200);
+            }}
+            className={pillClasses(isOnPost, isDark)}
+          >
+            <ImageStackIcon className="h-[18px] w-[18px]" />
+            Outfit
+          </button>
+        )}
 
         <button
+          ref={exploreRef}
           type="button"
-          onClick={() => router.push("/explore")}
-          className={navPillClasses(!isOnPost, isDark, false)}
+          onClick={() => {
+            // Slide indicator immediately before navigation
+            const el = exploreRef.current;
+            const parent = el?.parentElement;
+            if (el && parent) {
+              const parentRect = parent.getBoundingClientRect();
+              const elRect = el.getBoundingClientRect();
+              setIndicatorStyle({ left: elRect.left - parentRect.left, width: elRect.width });
+            }
+            setTimeout(() => router.push("/explore"), 200);
+          }}
+          className={pillClasses(!isOnPost, isDark)}
         >
           <CompassIcon className="h-[18px] w-[18px]" />
-          Verkennen
+          Explore
         </button>
       </nav>
     </div>
   );
 }
 
-function navPillClasses(isActive: boolean, isDark: boolean, disabled: boolean) {
+function pillClasses(isActive: boolean, isDark: boolean) {
   const base =
-    "flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all active:scale-95";
-
-  if (disabled) {
-    return `${base} ${
-      isDark ? "text-white/30" : "text-brand-text/30"
-    } cursor-not-allowed`;
-  }
-
-  if (isActive) {
-    return `${base} bg-brand-primary text-white shadow-sm`;
-  }
-
-  return `${base} ${
-    isDark
-      ? "text-white/85 hover:bg-white/10"
-      : "text-brand-text/85 hover:bg-white/40"
-  }`;
+    "relative z-10 flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors duration-200 active:scale-95";
+  if (isActive) return `${base} text-white`;
+  return `${base} ${isDark ? "text-white/80" : "text-brand-text/80"}`;
 }
