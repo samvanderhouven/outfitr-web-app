@@ -69,10 +69,10 @@ export default async function PostPage({
   if (!post) notFound();
 
   return (
-    <div className="min-h-screen bg-black pb-36">
+    <div className="min-h-screen bg-white pb-36">
       <PostDetailView post={post} />
-      <SharedNavBar activePostId={id} variant="dark" />
-      <AppStoreBar variant="dark" />
+      <SharedNavBar activePostId={id} variant="light" />
+      <AppStoreBar variant="light" />
     </div>
   );
 }
