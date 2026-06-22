@@ -138,7 +138,25 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
   return (
     <div className="relative mx-auto w-full max-w-md bg-white sm:max-w-lg">
 
-      {/* ── MEDIA with floating header overlay ── */}
+      {/* ── WHITE TOP BAR — like the app: "← Explore" ── */}
+      <div className="flex items-center gap-2 bg-white px-4 py-3"
+        style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
+        <button
+          type="button"
+          aria-label="Back to Explore"
+          onClick={() => { window.location.href = "/explore"; }}
+          className="flex items-center gap-1 text-gray-900 active:opacity-70"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            className="h-5 w-5">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          <span className="text-base font-semibold">Explore</span>
+        </button>
+      </div>
+
+      {/* ── MEDIA with floating user header overlay ── */}
       <div
         className="relative w-full overflow-hidden bg-black"
         style={{ aspectRatio: "3/4" }}
@@ -211,30 +229,14 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
           </div>
         )}
 
-        {/* ── FLOATING HEADER — overlays the top of the photo ── */}
+        {/* ── FLOATING HEADER — username + date over photo ── */}
         <div
-          className="absolute inset-x-0 top-0 z-20 flex items-center gap-3 px-4"
+          className="absolute inset-x-0 top-0 z-20 flex items-center gap-3 px-4 py-3"
           style={{
-            paddingTop: "env(safe-area-inset-top, 14px)",
-            paddingBottom: "14px",
-            background: "linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)",
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%)",
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Back arrow */}
-          <GlassButton
-            ariaLabel="Back to Explore"
-            onClick={() => { window.location.href = "/explore"; }}
-            className="h-9 w-9 shrink-0"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-              className="h-5 w-5">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </GlassButton>
-
-          {/* Avatar */}
           {user?.profilePicture ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

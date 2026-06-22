@@ -83,28 +83,28 @@ function Tag({
         {/* Liquid glass tooltip body */}
         <div
           style={{
-            background: "rgba(255,255,255,0.25)",
-            backdropFilter: "blur(20px) saturate(180%)",
-            WebkitBackdropFilter: "blur(20px) saturate(180%)",
-            border: "0.5px solid rgba(255,255,255,0.7)",
-            borderRadius: "8px",
-            padding: "5px 13px",
+            background: "rgba(255,255,255,0.04)",
+            backdropFilter: "blur(5px)",
+            WebkitBackdropFilter: "blur(5px)",
+            border: "0.5px solid rgba(255,255,255,0.35)",
+            borderRadius: "14px",
+            padding: "7px 14px",
             minWidth: 70,
-            maxWidth: 180,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.4)",
+            maxWidth: 220,
+            boxShadow: "inset 0 0.5px 0 rgba(255,255,255,0.5), inset 0 -0.5px 0 rgba(0,0,0,0.05)",
           }}
         >
           <span
             style={{
-              color: "white",
-              fontSize: "12px",
+              color: "rgba(255,255,255,0.95)",
+              fontSize: "13px",
               fontWeight: 600,
-              textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+              textShadow: "0 1px 6px rgba(0,0,0,0.7)",
               display: "block",
-              textAlign: "center",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
+              textAlign: "left",
+              whiteSpace: "normal",
+              
+              lineHeight: "1.3",
             }}
           >
             {label}
@@ -115,9 +115,9 @@ function Tag({
           style={{
             width: 0,
             height: 0,
-            borderLeft: "6px solid transparent",
-            borderRight: "6px solid transparent",
-            borderTop: "6px solid rgba(255,255,255,0.6)",
+            borderLeft: "5px solid transparent",
+            borderRight: "5px solid transparent",
+            borderTop: "5px solid rgba(255,255,255,0.35)",
           }}
         />
       </button>
