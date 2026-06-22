@@ -236,8 +236,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
         <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-3 px-4 pt-12">
           <GlassButton
             ariaLabel="Back to Explore"
-            onClick={(e) => {
-              (e as React.MouseEvent).stopPropagation();
+            onClick={() => {
               window.location.href = "/explore";
             }}
             className="h-10 w-10"
