@@ -1,7 +1,6 @@
 "use client";
 
 import type { OutfitrMediaTag } from "@/lib/types";
-import { TagIcon } from "./icons";
 
 export default function TagOverlay({
   tags,
@@ -15,9 +14,7 @@ export default function TagOverlay({
   if (!tags || tags.length === 0) return null;
 
   const handleTagClick = (e: React.MouseEvent, tag: OutfitrMediaTag) => {
-    // Prevent the image tap handler from firing (which would toggle tags)
     e.stopPropagation();
-
     const productUrl = tag.productUrl as string | undefined;
     if (!productUrl) return;
 
@@ -50,16 +47,44 @@ export default function TagOverlay({
           <div
             key={tag._id || index}
             style={{ left: `${x}%`, top: `${y}%` }}
-            className="absolute z-20 -translate-x-1/2 -translate-y-1/2 animate-tag-pop"
+            className="absolute z-20 -translate-x-1/2 -translate-y-full"
           >
             <button
               type="button"
               disabled={!clickable}
               onClick={(e) => handleTagClick(e, tag)}
-              className="flex items-center gap-1 rounded-full border border-white/50 bg-black/35 px-3 py-1.5 text-xs font-semibold text-white shadow-md backdrop-blur-md transition-transform active:scale-95 disabled:active:scale-100"
+              className="flex flex-col items-center disabled:cursor-default"
             >
-              <TagIcon className="h-3 w-3 shrink-0" />
-              <span className="max-w-[140px] truncate">{label}</span>
+              {/* Tooltip body — liquid glass like the app */}
+              <div
+                className="relative flex items-center justify-center overflow-hidden rounded-lg border px-3 py-1.5"
+                style={{
+                  borderColor: "rgba(255,255,255,0.5)",
+                  backgroundColor: "rgba(255,255,255,0.18)",
+                  backdropFilter: "blur(16px)",
+                  WebkitBackdropFilter: "blur(16px)",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
+                  minWidth: 80,
+                  maxWidth: 180,
+                }}
+              >
+                <span
+                  className="truncate text-xs font-semibold text-white"
+                  style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}
+                >
+                  {label}
+                </span>
+              </div>
+              {/* Caret pointing down toward the tagged item */}
+              <div
+                style={{
+                  width: 0,
+                  height: 0,
+                  borderLeft: "6px solid transparent",
+                  borderRight: "6px solid transparent",
+                  borderTop: "6px solid rgba(255,255,255,0.45)",
+                }}
+              />
             </button>
           </div>
         );
