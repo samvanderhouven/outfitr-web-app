@@ -1,0 +1,16 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.outfitr", 
+      "sha256_cert_fingerprints": [
+        "FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C",
+        "5A:28:6F:C6:B0:4F:A0:F7:55:86:4A:9F:0C:C0:34:52:B1:B1:1E:0B:39:03:26:D4:1B:19:E9:D5:5B:13:5A:25",
+        "5A:3B:F5:C5:D4:F3:69:02:3E:96:91:A1:F8:B2:74:FD:B7:3B:68:F0:D5:83:D5:68:9A:93:C3:4E:63:1B:9C:87"
+      ]
+    }
+  }
+]
