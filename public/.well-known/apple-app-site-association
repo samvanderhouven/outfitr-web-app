@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "Q6CH285WXR.com.Outfitr.org",
+        "paths": [
+          "/post/*"
+        ]
+      }
+    ]
+  }
+}
