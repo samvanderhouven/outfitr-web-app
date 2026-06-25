@@ -49,7 +49,7 @@ export default function AppStoreBar({
           rel="noopener noreferrer"
           className="shrink-0 rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white transition-transform active:scale-95 hover:bg-brand-primary-dark"
         >
-          Open app
+          Open in app
         </a>
       </div>
     </div>
