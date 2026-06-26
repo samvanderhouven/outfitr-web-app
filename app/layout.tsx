@@ -17,7 +17,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="nl" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+<body className="min-h-full flex flex-col">
+  {children}
+  <script type="text/javascript" src="https://s.skimresources.com/js/305319X1793515.skimlinks.js" async />
+</body>
     </html>
   );
 }
