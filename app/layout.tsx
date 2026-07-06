@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/config";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: {
@@ -17,10 +18,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="nl" className="h-full antialiased">
-<body className="min-h-full flex flex-col">
-  {children}
-  <script type="text/javascript" src="https://s.skimresources.com/js/305319X1793515.skimlinks.js" async />
-</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Script id="sovrn-commerce" strategy="afterInteractive">
+          {`
+            var vglnk = {key: '48c740e6ae1728a98d53c45ca6f3f0b9'};
+            (function(d, t) {
+              var s = d.createElement(t);
+              s.type = 'text/javascript';
+              s.async = true;
+              s.src = '//cdn.viglink.com/api/vglnk.js';
+              var r = d.getElementsByTagName(t)[0];
+              r.parentNode.insertBefore(s, r);
+            }(document, 'script'));
+          `}
+        </Script>
+      </body>
     </html>
   );
 }
