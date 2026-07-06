@@ -20,9 +20,10 @@ export default function RootLayout({
     <html lang="nl" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
         {children}
+
         <Script id="sovrn-commerce" strategy="afterInteractive">
           {`
-            var vglnk = {key: '48c740e6ae1728a98d53c45ca6f3f0b9'};
+            var vglnk = {key: '5eabd0eec7c28fda6ae37e65f16350924'};
             (function(d, t) {
               var s = d.createElement(t);
               s.type = 'text/javascript';
