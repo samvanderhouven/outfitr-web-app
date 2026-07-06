@@ -23,7 +23,7 @@ export default function RootLayout({
 
         <Script id="sovrn-commerce" strategy="afterInteractive">
           {`
-            var vglnk = {key: '5eabd0eec7c28fda6ae37e65f16350924'};
+            var vglnk = {key: '5eabd0ec7c28fda6ae37e65f16350924'};
             (function(d, t) {
               var s = d.createElement(t);
               s.type = 'text/javascript';
