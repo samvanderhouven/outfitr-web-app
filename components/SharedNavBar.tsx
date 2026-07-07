@@ -41,17 +41,22 @@ export default function SharedNavBar({
 
   // Measure the active pill and set the sliding indicator position
   useEffect(() => {
-    const activeRef = isOnPost ? outfitRef : exploreRef;
-    const el = activeRef.current;
-    if (!el) return;
-    const parent = el.parentElement;
-    if (!parent) return;
-    const parentRect = parent.getBoundingClientRect();
-    const elRect = el.getBoundingClientRect();
-    setIndicatorStyle({
-      left: elRect.left - parentRect.left,
-      width: elRect.width,
-    });
+    const measure = () => {
+      const activeRef = isOnPost ? outfitRef : exploreRef;
+      const el = activeRef.current;
+      if (!el) return;
+      const parent = el.parentElement;
+      if (!parent) return;
+      const parentRect = parent.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      setIndicatorStyle({
+        left: elRect.left - parentRect.left,
+        width: elRect.width,
+      });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
   }, [isOnPost, rememberedPostId]);
 
   return (

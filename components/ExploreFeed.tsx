@@ -30,7 +30,10 @@ export default function ExploreFeed({
       const res = await fetch(`/api/explore?${qs.toString()}`);
       const json: ExploreResponse = await res.json();
       const newPosts = json?.data?.posts || [];
-      setPosts((prev) => [...prev, ...newPosts]);
+      setPosts((prev) => {
+        const seen = new Set(prev.map((p) => p._id));
+        return [...prev, ...newPosts.filter((p) => p._id && !seen.has(p._id))];
+      });
       setNextCursor(json?.data?.nextCursor ?? null);
       setHasMore(Boolean(json?.data?.hasMore) && newPosts.length > 0);
     } catch (error) {

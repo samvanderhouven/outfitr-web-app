@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { OutfitrPost } from "@/lib/types";
 import { formatCount, getInitial, getPostUser } from "@/lib/post-utils";
@@ -16,36 +17,8 @@ import {
 import TagOverlay from "./TagOverlay";
 import { APP_STORE_URL } from "@/lib/config";
 
-function GlassButton({
-  children,
-  onClick,
-  ariaLabel,
-  className = "",
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  ariaLabel: string;
-  className?: string;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={ariaLabel}
-      onClick={onClick}
-      style={{
-        backgroundColor: "rgba(255,255,255,0.05)",
-        borderColor: "rgba(255,255,255,0.4)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-      }}
-      className={`flex items-center justify-center rounded-full border-[1.5px] text-white transition-transform active:scale-90 ${className}`}
-    >
-      {children}
-    </button>
-  );
-}
-
 export default function PostDetailView({ post }: { post: OutfitrPost }) {
+  const router = useRouter();
   const user = getPostUser(post);
   const media = post.media || [];
   const [activeIndex, setActiveIndex] = useState(0);
@@ -144,7 +117,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
         <button
           type="button"
           aria-label="Back to Explore"
-          onClick={() => { window.location.href = "/explore"; }}
+          onClick={() => router.push("/explore")}
           className="flex items-center gap-1 text-gray-900 active:opacity-70"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
@@ -159,7 +132,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
       {/* ── MEDIA with floating user header overlay ── */}
       <div
         className="relative w-full overflow-hidden bg-black"
-        style={{ aspectRatio: "3/4" }}
+        style={{ aspectRatio: "3/4", touchAction: "manipulation" }}
         onClick={handleImageTap}
       >
         {currentMedia?.mediaUrl ? (
@@ -282,7 +255,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
             <HeartIcon filled={liked}
               className={liked ? "h-6 w-6 text-red-500" : "h-6 w-6 text-gray-800"} />
             <span className="text-sm font-medium text-gray-800">
-              {formatCount((post.likeCount || 0) + (liked && !post.isLikedByCurrentUser ? 1 : 0))}
+              {formatCount(Math.max(0, (post.likeCount || 0) + (liked ? 1 : 0) - (post.isLikedByCurrentUser ? 1 : 0)))}
             </span>
           </button>
 
