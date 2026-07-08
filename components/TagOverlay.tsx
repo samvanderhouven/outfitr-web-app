@@ -21,7 +21,8 @@ function Tag({
     const el = ref.current;
     if (!el) return;
     el.style.opacity = "0";
-    el.style.transform = "translate(-50%, -100%) scale(0.7)";
+    el.style.transformOrigin = "top center";
+    el.style.transform = "translate(-50%, 0%) scale(0.7)";
 
     // Stagger each tag slightly
     const delay = index * 60;
@@ -29,7 +30,7 @@ function Tag({
       el.style.transition =
         "opacity 180ms ease, transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1)";
       el.style.opacity = "1";
-      el.style.transform = "translate(-50%, -100%) scale(1)";
+      el.style.transform = "translate(-50%, 0%) scale(1)";
     }, delay);
 
     return () => clearTimeout(timer);
@@ -67,9 +68,13 @@ function Tag({
       ref={ref}
       style={{
         position: "absolute",
+        // The tag is anchored at the exact (x, y) the creator placed. The block
+        // hangs BELOW that point (translateY 0%), and the upward caret's tip is
+        // at the very top of the block — so the caret tip lands on the anchor.
         left: `${x}%`,
         top: `${y}%`,
-        transform: "translate(-50%, -100%) scale(0.7)",
+        transform: "translate(-50%, 0%) scale(0.7)",
+        transformOrigin: "top center",
         zIndex: 20,
         opacity: 0,
       }}
@@ -80,6 +85,16 @@ function Tag({
         onClick={handleClick}
         className="flex flex-col items-center disabled:cursor-default"
       >
+        {/* Caret pointing up (toward the item) */}
+        <div
+          style={{
+            width: 0,
+            height: 0,
+            borderLeft: "5px solid transparent",
+            borderRight: "5px solid transparent",
+            borderBottom: "5px solid rgba(255,255,255,0.35)",
+          }}
+        />
         {/* Liquid glass tooltip body */}
         <div
           style={{
@@ -103,23 +118,12 @@ function Tag({
               display: "block",
               textAlign: "left",
               whiteSpace: "normal",
-              
               lineHeight: "1.3",
             }}
           >
             {label}
           </span>
         </div>
-        {/* Caret pointing down */}
-        <div
-          style={{
-            width: 0,
-            height: 0,
-            borderLeft: "5px solid transparent",
-            borderRight: "5px solid transparent",
-            borderTop: "5px solid rgba(255,255,255,0.35)",
-          }}
-        />
       </button>
     </div>
   );
