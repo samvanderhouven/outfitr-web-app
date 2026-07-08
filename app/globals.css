@@ -67,6 +67,8 @@ html {
 .masonry-item {
   break-inside: avoid;
   margin-bottom: 0.5rem;
+  /* Reserve painting box so lazy images don't nudge neighbours */
+  contain: layout paint style;
 }
 @media (min-width: 640px) {
   .masonry-item {
