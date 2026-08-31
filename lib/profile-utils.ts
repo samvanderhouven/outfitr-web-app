@@ -11,19 +11,43 @@ export function isObjectId(handle: string): boolean {
 }
 
 /**
- * Usernames are stored with their original casing but compared
- * case-insensitively by the backend, and the mobile profile header renders
- * them lowercased with whitespace stripped. We normalise the same way so
- * `/profile/Vincent` and `/profile/vincent` resolve to one canonical URL.
+ * Usernames are compared case-insensitively by the backend, so casing is the
+ * only thing we normalise for lookup.
+ *
+ * IMPORTANT: whitespace is *not* stripped here. The mobile profile header
+ * renders `@{username.toLowerCase().replace(/\s/g,'')}` — but that is a
+ * cosmetic label, not an identifier. Real usernames in this database do
+ * contain spaces ("Tieme van der Meer", "Sem Coumans"), and stripping them
+ * produces a handle that can never be resolved back to a user.
  */
 export function normalizeHandle(handle: string): string {
-  return handle.trim().toLowerCase().replace(/\s/g, "");
+  return handle.trim().toLowerCase();
 }
 
-/** The canonical, shareable path for a user. Prefers the username. */
+/**
+ * Can this username be used as a clean URL segment?
+ *
+ * Only usernames made of letters, digits, dot, underscore and hyphen get a
+ * pretty `/profile/<username>` URL. Anything with spaces, accents, an @ or
+ * other punctuation (all of which occur in the live user table) is addressed
+ * by id instead — that always resolves, needs no escaping, and matches the
+ * `/profile/<userId>` shape the mobile app already uses for push links.
+ */
+export function isUrlSafeUsername(username?: string): boolean {
+  const trimmed = username?.trim();
+  if (!trimmed) return false;
+  return /^[a-zA-Z0-9._-]{1,64}$/.test(trimmed);
+}
+
+/**
+ * The canonical, shareable path for a user. Prefers a pretty username URL and
+ * falls back to the id when the username cannot be one.
+ */
 export function profilePath(user?: Pick<OutfitrUser, "_id" | "username">): string | null {
   if (!user) return null;
-  if (user.username?.trim()) return `/profile/${normalizeHandle(user.username)}`;
+  if (isUrlSafeUsername(user.username)) {
+    return `/profile/${normalizeHandle(user.username!)}`;
+  }
   if (user._id) return `/profile/${user._id}`;
   return null;
 }
@@ -33,11 +57,15 @@ export function getDisplayName(profile?: OutfitrProfile | OutfitrUser): string {
   return profile?.fullName?.trim() || profile?.username?.trim() || "OutfitR user";
 }
 
-/** Handle shown under the name. Mobile lowercases and strips spaces. */
+/**
+ * Handle shown under the name — cosmetic only, mirroring the mobile header,
+ * which lowercases and strips spaces. Never use this to build a URL; use
+ * `profilePath` for that.
+ */
 export function getHandle(profile?: OutfitrProfile | OutfitrUser): string | null {
   const username = profile?.username?.trim();
   if (!username) return null;
-  return normalizeHandle(username);
+  return username.toLowerCase().replace(/\s/g, "");
 }
 
 export interface BadgeMeta {

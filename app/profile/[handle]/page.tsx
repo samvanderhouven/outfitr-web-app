@@ -2,10 +2,18 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import {
   OutfitrApiError,
+  ProfileLookupError,
   getProfileByHandle,
   getUserPosts,
 } from "@/lib/outfitr-api";
-import { getDisplayName, getHandle, normalizeHandle } from "@/lib/profile-utils";
+import {
+  getDisplayName,
+  getHandle,
+  isUrlSafeUsername,
+  normalizeHandle,
+  profilePath,
+} from "@/lib/profile-utils";
+import ProfileUnavailable from "@/components/ProfileUnavailable";
 import type { OutfitrPost } from "@/lib/types";
 import SiteHeader from "@/components/SiteHeader";
 import ProfileHeader from "@/components/ProfileHeader";
@@ -20,12 +28,20 @@ type Params = { handle: string };
 
 const PAGE_SIZE = 24;
 
-async function loadProfile(handle: string) {
+type LoadResult =
+  | { ok: true; result: Awaited<ReturnType<typeof getProfileByHandle>> }
+  | { ok: false; reason: "not-found" | "unavailable" };
+
+async function loadProfile(handle: string): Promise<LoadResult> {
   try {
-    return await getProfileByHandle(handle);
+    return { ok: true, result: await getProfileByHandle(handle) };
   } catch (error) {
+    if (error instanceof ProfileLookupError) {
+      return { ok: false, reason: error.reason };
+    }
+    // Network/parse failure — we cannot claim the profile doesn't exist.
     console.error(`Failed to load profile ${handle}`, error);
-    return null;
+    return { ok: false, reason: "unavailable" };
   }
 }
 
@@ -35,13 +51,14 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { handle } = await params;
-  const result = await loadProfile(handle);
+  const loaded = await loadProfile(handle);
 
-  if (!result) {
-    return { title: `Profile not found | ${SITE_NAME}` };
+  if (!loaded.ok) {
+    // layout.tsx already appends "| OutfitR" via its title template.
+    return { title: "Profile" };
   }
 
-  const { profile } = result;
+  const { profile } = loaded.result;
   const displayName = getDisplayName(profile);
   const username = getHandle(profile);
   const title = username
@@ -56,7 +73,8 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: username ? `/profile/${username}` : `/profile/${profile._id}`,
+      canonical:
+        profilePath(profile) ?? `/profile/${encodeURIComponent(handle)}`,
     },
     openGraph: {
       title,
@@ -79,18 +97,28 @@ export default async function ProfilePage({
   params: Promise<Params>;
 }) {
   const { handle } = await params;
-  const result = await loadProfile(handle);
+  const loaded = await loadProfile(handle);
 
-  if (!result) notFound();
+  if (!loaded.ok) {
+    // Only a reachable endpoint saying "no such user" is a 404. When the
+    // profile endpoint is still auth-gated we cannot tell, and showing "this
+    // profile doesn't exist" for a creator who does exist is far worse than
+    // saying we can't load it right now.
+    if (loaded.reason === "not-found") notFound();
+    return <ProfileUnavailable handle={handle} />;
+  }
 
-  const { profile, source } = result;
-  const username = getHandle(profile);
+  const { profile, source } = loaded.result;
 
-  // Keep one canonical URL: `/profile/<username>`. Ids and mixed-case handles
-  // (both of which stay valid, e.g. push-notification links using the user id)
-  // redirect to it so shares and OG scrapes always converge on one address.
-  if (username && normalizeHandle(handle) !== username) {
-    redirect(`/profile/${username}`);
+  // Keep one canonical URL. A username only becomes the canonical URL when it
+  // is URL-safe — usernames with spaces or punctuation stay on their id URL,
+  // which always resolves and needs no escaping.
+  const canonicalSegment = isUrlSafeUsername(profile.username)
+    ? normalizeHandle(profile.username!)
+    : null;
+
+  if (canonicalSegment && normalizeHandle(handle) !== canonicalSegment) {
+    redirect(`/profile/${canonicalSegment}`);
   }
 
   // Posts are fetched by id — it is the identifier the posts endpoint accepts
@@ -141,7 +169,9 @@ export default async function ProfilePage({
         </div>
       </main>
 
-      <SharedNavBar activeProfileHandle={username ?? profile._id} />
+      <SharedNavBar
+        activeProfileHandle={canonicalSegment ?? profile._id}
+      />
       <AppStoreBar />
     </div>
   );

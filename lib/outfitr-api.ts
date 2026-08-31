@@ -141,6 +141,27 @@ export interface ProfileResult {
   source: ProfileSource;
 }
 
+/**
+ * Why a lookup produced no profile.
+ *
+ * `not-found`   — the profile endpoint answered and said this user does not
+ *                 exist. Safe to render a 404.
+ * `unavailable` — we could not determine it: the profile endpoint still
+ *                 requires a token, and the public search fallback did not
+ *                 surface this user. The user probably DOES exist, so a 404
+ *                 would be a lie. Render "temporarily unavailable" instead.
+ */
+export type ProfileMissReason = "not-found" | "unavailable";
+
+export class ProfileLookupError extends Error {
+  readonly reason: ProfileMissReason;
+  constructor(reason: ProfileMissReason) {
+    super(`Profile lookup failed: ${reason}`);
+    this.name = "ProfileLookupError";
+    this.reason = reason;
+  }
+}
+
 // Fields we deliberately drop before the profile reaches the browser.
 // The current backend `getProfile` selects `email` (and privacy settings);
 // none of that belongs in a public, server-rendered page.
@@ -176,7 +197,10 @@ async function findProfileViaSearch(
   const normalized = normalizeHandle(handle);
   const query = new URLSearchParams({
     search: normalized,
-    userLimit: "20",
+    // 50 is the backend's cap. Search ranks by a relevance score and also
+    // matches on bio and brand/style attributes, so an exact username match is
+    // not guaranteed to be in the top few — ask for as many as it will give.
+    userLimit: "50",
     postLimit: "1",
   });
 
@@ -202,9 +226,13 @@ async function findProfileViaSearch(
  */
 export async function getProfileByHandle(
   handle: string,
-): Promise<ProfileResult | null> {
+): Promise<ProfileResult> {
   const trimmed = handle.trim();
-  if (!trimmed) return null;
+  if (!trimmed) throw new ProfileLookupError("not-found");
+
+  // Did the profile endpoint actually answer us, or is it still auth-gated?
+  // That decides whether "no profile" means 404 or "we can't tell yet".
+  let profileApiAnswered = false;
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -215,26 +243,44 @@ export async function getProfileByHandle(
     if (data?._id) {
       return { profile: toPublicProfile(data), source: "profile-api" };
     }
+    profileApiAnswered = true;
   } catch (error) {
     const apiError = error instanceof OutfitrApiError ? error : null;
+    if (!apiError) throw error;
 
-    // 401/403 → the endpoint has not been opened to anonymous callers yet.
-    // 404/400 → this backend build does not resolve usernames on that route.
-    // Both are recoverable via the public search fallback for usernames.
-    const recoverable =
-      apiError !== null &&
-      (apiError.isAuthGated || apiError.isNotFound || apiError.status === 400);
-
-    if (!recoverable) throw error;
+    if (apiError.isAuthGated) {
+      // Endpoint not opened to anonymous callers yet — we learned nothing.
+      profileApiAnswered = false;
+    } else if (apiError.isNotFound) {
+      // A real "user not found" from a reachable endpoint.
+      profileApiAnswered = true;
+    } else if (apiError.status === 400) {
+      // Mongoose CastError surfaces as 400: this backend build does
+      // findById() only, so a username is unreadable to it. Not an answer
+      // about existence.
+      profileApiAnswered = isObjectId(trimmed);
+    } else {
+      throw error;
+    }
   }
 
   if (isObjectId(trimmed)) {
     // Search cannot resolve an id, so there is nothing left to try.
-    return null;
+    throw new ProfileLookupError(
+      profileApiAnswered ? "not-found" : "unavailable",
+    );
   }
 
   const fromSearch = await findProfileViaSearch(trimmed);
-  return fromSearch ? { profile: fromSearch, source: "search-fallback" } : null;
+  if (fromSearch) {
+    return { profile: fromSearch, source: "search-fallback" };
+  }
+
+  // Search is a relevance ranking, not an index — it genuinely misses existing
+  // users. So only call it a 404 when the profile endpoint itself said so.
+  throw new ProfileLookupError(
+    profileApiAnswered ? "not-found" : "unavailable",
+  );
 }
 
 /**
