@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import type { OutfitrPost } from "@/lib/types";
 import { formatCount, getInitial, getPostUser } from "@/lib/post-utils";
+import { profilePath } from "@/lib/profile-utils";
 import {
   BookmarkIcon,
   ChatIcon,
@@ -17,9 +19,24 @@ import {
 import TagOverlay from "./TagOverlay";
 import { APP_STORE_URL } from "@/lib/config";
 
-export default function PostDetailView({ post }: { post: OutfitrPost }) {
+export default function PostDetailView({
+  post,
+  /**
+   * Handle of the profile the visitor arrived from, taken from `?from=` on the
+   * post URL. When set, the back button returns to that profile instead of
+   * Explore — so opening an outfit from a profile feels like a push/pop rather
+   * than a jump out of the creator's page.
+   */
+  fromProfile,
+}: {
+  post: OutfitrPost;
+  fromProfile?: string;
+}) {
   const router = useRouter();
   const user = getPostUser(post);
+  const userProfilePath = profilePath(user);
+  const backHref = fromProfile ? `/profile/${fromProfile}` : "/explore";
+  const backLabel = fromProfile ? "Profile" : "Explore";
   const media = post.media || [];
   const [activeIndex, setActiveIndex] = useState(0);
   const [showSharePrompt, setShowSharePrompt] = useState(false);
@@ -116,8 +133,8 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
         style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
         <button
           type="button"
-          aria-label="Back to Explore"
-          onClick={() => router.push("/explore")}
+          aria-label={`Back to ${backLabel}`}
+          onClick={() => router.push(backHref)}
           className="flex items-center gap-1 text-gray-900 active:opacity-70"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
@@ -125,7 +142,7 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
             className="h-5 w-5">
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          <span className="text-base font-semibold">Explore</span>
+          <span className="text-base font-semibold">{backLabel}</span>
         </button>
       </div>
 
@@ -210,28 +227,35 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {user?.profilePicture ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={user.profilePicture}
-              alt={user.username || "User"}
-              className="h-9 w-9 shrink-0 rounded-full border-2 border-white/70 object-cover"
-            />
-          ) : (
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4b5e70] to-[#a1b8c4] text-sm font-semibold text-white">
-              {initials}
-            </div>
-          )}
-
-          {/* Username + date */}
-          <div className="flex flex-1 flex-col">
-            <span className="text-sm font-semibold text-white drop-shadow-sm">
-              {user?.username || "OutfitR user"}
-            </span>
-            {formattedDate && (
-              <span className="text-xs text-white/70">{formattedDate}</span>
+          {/* Avatar + username — the whole block links to the creator's
+              public profile, so the picture and the name are both tappable. */}
+          <CreatorLink
+            href={userProfilePath}
+            className="flex min-w-0 flex-1 items-center gap-3"
+          >
+            {user?.profilePicture ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.profilePicture}
+                alt={user.username || "User"}
+                className="h-9 w-9 shrink-0 rounded-full border-2 border-white/70 object-cover"
+              />
+            ) : (
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4b5e70] to-[#a1b8c4] text-sm font-semibold text-white">
+                {initials}
+              </div>
             )}
-          </div>
+
+            {/* Username + date */}
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-sm font-semibold text-white drop-shadow-sm">
+                {user?.username || "OutfitR user"}
+              </span>
+              {formattedDate && (
+                <span className="text-xs text-white/70">{formattedDate}</span>
+              )}
+            </div>
+          </CreatorLink>
 
           {/* Three dots */}
           <button
@@ -279,11 +303,13 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
         </button>
       </div>
 
-      {/* Caption */}
+      {/* Caption — the leading username also links to the profile */}
       {post.description && (
         <div className="bg-white px-4 pb-3">
           <p className="text-sm leading-relaxed text-gray-900">
-            <span className="font-semibold">{user?.username || "user"}</span>{" "}
+            <CreatorLink href={userProfilePath} className="font-semibold hover:underline">
+              {user?.username || "user"}
+            </CreatorLink>{" "}
             {post.description}
           </p>
         </div>
@@ -321,5 +347,29 @@ export default function PostDetailView({ post }: { post: OutfitrPost }) {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Renders its children as a link to a creator's profile, or as a plain span
+ * when the post's author could not be resolved (the API sometimes returns
+ * `userId` as a bare id string rather than a populated user).
+ */
+function CreatorLink({
+  href,
+  className,
+  children,
+}: {
+  href: string | null;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  if (!href) {
+    return <span className={className}>{children}</span>;
+  }
+  return (
+    <Link href={href} className={className} onClick={(e) => e.stopPropagation()}>
+      {children}
+    </Link>
   );
 }

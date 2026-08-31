@@ -215,3 +215,142 @@ export function TagIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+export function GridIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="22"
+      height="22"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
+export function VideoIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="22"
+      height="22"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
+      <rect x="2.5" y="5" width="14" height="14" rx="3" strokeLinejoin="round" />
+      <path
+        d="M16.5 10.2l3.6-2.2a.8.8 0 0 1 1.2.7v6.6a.8.8 0 0 1-1.2.7l-3.6-2.2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function LockIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+    >
+      <rect x="4" y="10.5" width="16" height="10.5" rx="2.5" strokeLinejoin="round" />
+      <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function VerifiedIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" className={className} fill="currentColor">
+      <path d="M12 1.8l2.4 2.05 3.15-.35 1 3-2.05 2.4 2.05 2.4-1 3-3.15-.35L12 16l-2.4-2.05-3.15.35-1-3L7.5 8.9 5.45 6.5l1-3 3.15.35L12 1.8Z" opacity="0" />
+      <path d="M12 2.25l1.94 1.66 2.55-.28.81 2.43 2.2 1.34-.75 2.45.75 2.45-2.2 1.34-.81 2.43-2.55-.28L12 17.45l-1.94-1.66-2.55.28-.81-2.43-2.2-1.34.75-2.45-.75-2.45 2.2-1.34.81-2.43 2.55.28L12 2.25Z" />
+      <path
+        d="M8.9 9.85l2.05 2.05 4.15-4.15"
+        fill="none"
+        stroke="#fff"
+        strokeWidth={1.9}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function CrownIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="14"
+      height="14"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+    >
+      <path
+        d="M3.5 7.5l3.4 2.6L12 4.5l5.1 5.6 3.4-2.6-1.5 10.5H5L3.5 7.5Z"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function SunriseIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="14"
+      height="14"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 3.5v3M5.6 6.6l2 2M18.4 6.6l-2 2M2.5 17h19M4.5 13.5h15" />
+      <path d="M8.5 13.5a3.5 3.5 0 1 1 7 0" />
+    </svg>
+  );
+}
+
+export function StarIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" className={className} fill="currentColor">
+      <path d="M12 3.2l2.6 5.4 5.9.8-4.3 4.1 1.05 5.9L12 16.6l-5.25 2.8L7.8 13.5 3.5 9.4l5.9-.8L12 3.2Z" />
+    </svg>
+  );
+}
+
+export function ProfileIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
+      <circle cx="12" cy="8.2" r="3.7" />
+      <path
+        d="M4.8 20c.7-3.6 3.7-5.8 7.2-5.8s6.5 2.2 7.2 5.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}

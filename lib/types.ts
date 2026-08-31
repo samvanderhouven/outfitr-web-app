@@ -1,8 +1,46 @@
+/**
+ * Creator badge tiers, mirrored from the backend
+ * (src/config/creatorBadge.config.js — CREATOR_BADGE_ORDER).
+ */
+export type OutfitrBadge =
+  | "none"
+  | "rising-creator"
+  | "trend-setter"
+  | "outfitr-verified"
+  | "partner-creator";
+
 export interface OutfitrUser {
   _id: string;
   username?: string;
+  /**
+   * The backend user model has no `fullName` column — the mobile app reads
+   * `fullName` with a fallback to `username`. We keep the field so the same
+   * display logic works if it is ever added.
+   */
   fullName?: string;
   profilePicture?: string;
+  isVerified?: boolean;
+  badge?: OutfitrBadge | string;
+}
+
+/**
+ * Public profile payload — the subset of `GET /profile/get-profile/:handle`
+ * that a logged-out web visitor is allowed to see. Deliberately does NOT
+ * include `email`, `accountType` or notification settings.
+ */
+export interface OutfitrProfile extends OutfitrUser {
+  bio?: string;
+  totalPosts?: number;
+  totalFollowers?: number;
+  totalFollowing?: number;
+  /** True when the profile is private and its posts must not be listed. */
+  isPrivate?: boolean;
+}
+
+export interface UserPostsResponse {
+  posts: OutfitrPost[];
+  nextCursor: string | null;
+  hasMore: boolean;
 }
 
 export interface OutfitrMediaTag {
