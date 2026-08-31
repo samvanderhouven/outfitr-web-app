@@ -5,7 +5,8 @@
       {
         "appID": "Q6CH285WXR.com.Outfitr.org",
         "paths": [
-          "/post/*"
+          "/post/*",
+          "/profile/*"
         ]
       }
     ]
