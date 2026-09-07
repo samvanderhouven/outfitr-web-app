@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { OutfitrApiError, getUserPosts } from "@/lib/outfitr-api";
+import { decodeHandle } from "@/lib/profile-utils";
 
 const MAX_LIMIT = 30;
 const MAX_CURSOR_LENGTH = 200;
@@ -14,7 +15,10 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ handle: string }> },
 ) {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params;
+  // App Router params arrive percent-encoded — decode before re-encoding
+  // upstream, or a handle with a space becomes "Tim%2520Pennock".
+  const handle = decodeHandle(rawHandle);
 
   if (!handle || handle.length > MAX_HANDLE_LENGTH) {
     return NextResponse.json(

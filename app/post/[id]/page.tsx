@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPostById } from "@/lib/outfitr-api";
 import { getPostUser, getPrimaryMedia } from "@/lib/post-utils";
+import { decodeHandle } from "@/lib/profile-utils";
 import PostDetailView from "@/components/PostDetailView";
 import AppStoreBar from "@/components/AppStoreBar";
 import SharedNavBar from "@/components/SharedNavBar";
@@ -27,7 +28,8 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const post = await fetchPost(id);
+  const postId = decodeHandle(id);
+  const post = await fetchPost(postId);
 
   if (!post) {
     return { title: `Post not found | ${SITE_NAME}` };
@@ -66,8 +68,9 @@ export default async function PostPage({
   searchParams: Promise<{ from?: string | string[] }>;
 }) {
   const { id } = await params;
+  const postId = decodeHandle(id);
   const { from } = await searchParams;
-  const post = await fetchPost(id);
+  const post = await fetchPost(postId);
 
   if (!post) notFound();
 
@@ -82,7 +85,7 @@ export default async function PostPage({
     <div className="min-h-screen bg-white pb-36">
       <PostDetailView post={post} fromProfile={fromProfile} />
       <SharedNavBar
-        activePostId={id}
+        activePostId={postId}
         activeProfileHandle={fromProfile}
         variant="light"
       />

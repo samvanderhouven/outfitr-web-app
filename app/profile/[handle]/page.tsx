@@ -7,6 +7,7 @@ import {
   getUserPosts,
 } from "@/lib/outfitr-api";
 import {
+  decodeHandle,
   getDisplayName,
   getHandle,
   isUrlSafeUsername,
@@ -50,7 +51,9 @@ export async function generateMetadata({
 }: {
   params: Promise<Params>;
 }): Promise<Metadata> {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params;
+  // App Router params are percent-encoded; usernames with spaces need decoding.
+  const handle = decodeHandle(rawHandle);
   const loaded = await loadProfile(handle);
 
   if (!loaded.ok) {
@@ -96,7 +99,9 @@ export default async function ProfilePage({
 }: {
   params: Promise<Params>;
 }) {
-  const { handle } = await params;
+  const { handle: rawHandle } = await params;
+  // App Router params are percent-encoded; usernames with spaces need decoding.
+  const handle = decodeHandle(rawHandle);
   const loaded = await loadProfile(handle);
 
   if (!loaded.ok) {

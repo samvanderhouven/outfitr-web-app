@@ -3,6 +3,30 @@ import type { OutfitrBadge, OutfitrProfile, OutfitrUser } from "./types";
 const OBJECT_ID_RE = /^[a-f0-9]{24}$/i;
 
 /**
+ * Turn a Next.js dynamic route segment back into the real value.
+ *
+ * IMPORTANT: App Router hands `params` to us **percent-encoded** — the segment
+ * of `/profile/Tim%20Pennock` arrives as the 13-character string
+ * `"Tim%20Pennock"`, not as `"Tim Pennock"`. Every username in this database
+ * that contains a space (and there are many) therefore has to be decoded here
+ * before it is looked up, compared or re-encoded. Skipping this step double
+ * encodes the value (`encodeURIComponent("Tim%20Pennock") ===
+ * "Tim%2520Pennock"`), the API answers 404, and a creator who really exists is
+ * shown "this profile could not be found".
+ *
+ * Malformed input (a lone `%`, a truncated escape) is returned unchanged
+ * rather than throwing, so a hand-typed URL degrades to "not found" instead of
+ * a 500.
+ */
+export function decodeHandle(segment: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return segment;
+  }
+}
+
+/**
  * A profile URL segment is either a Mongo ObjectId (the shape mobile already
  * uses for push-notification deep links, `/profile/<userId>`) or a username.
  */
