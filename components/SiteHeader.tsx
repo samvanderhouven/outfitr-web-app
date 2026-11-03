@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { APP_STORE_URL } from "@/lib/config";
+import { APP_DOWNLOAD_URL } from "@/lib/config";
 
 export default function SiteHeader() {
   return (
@@ -20,7 +20,7 @@ export default function SiteHeader() {
           </span>
         </Link>
         <a
-          href={APP_STORE_URL}
+          href={APP_DOWNLOAD_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="hidden rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-primary-dark sm:inline-block"

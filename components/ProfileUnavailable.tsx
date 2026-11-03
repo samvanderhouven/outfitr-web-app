@@ -1,7 +1,7 @@
 import Link from "next/link";
 import SiteHeader from "./SiteHeader";
 import AppStoreBar from "./AppStoreBar";
-import { APP_STORE_URL } from "@/lib/config";
+import { APP_DOWNLOAD_URL } from "@/lib/config";
 
 /**
  * Shown when we could not determine whether a profile exists — currently the
@@ -36,7 +36,7 @@ export default function ProfileUnavailable({ handle }: { handle: string }) {
 
         <div className="mt-4 flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
           <a
-            href={APP_STORE_URL}
+            href={APP_DOWNLOAD_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white"

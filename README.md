@@ -5,8 +5,13 @@ Dit is een losstaande webversie van OutfitR, gebouwd met Next.js. Hij doet twee 
 1. **`/explore`** – toont de openbare explore-feed (zelfde data als in de app), met infinite scroll.
 2. **`/post/[id]`** – toont één gedeelde post fullscreen, in dezelfde stijl als de post-detail in de app. Dit is de pagina waar `https://api.outfitr.nl/post/:id`-links naartoe moeten wijzen (zie "Koppelen aan gedeelde links" hieronder).
 
-Op **elk scherm** staat een vaste balk onderaan met een knop die naar de App Store gaat:
-`https://apps.apple.com/nl/app/outfitr/id6760657115`
+Op **elk scherm** staat een vaste balk onderaan met een knop om de app te downloaden. Alle download-knoppen linken naar **`/download`** (`app/download/route.ts`), een slimme redirect:
+
+- **Android** → Google Play (`com.outfitr`, referrer `utm_source=OutfitR webapp`)
+- **iPhone/iPad** en **desktop** → App Store met campagne **`OutfitR webapp`**:
+  `https://apps.apple.com/app/apple-store/id6760657115?pt=128623749&ct=OutfitR%20webapp&mt=8`
+
+De links staan centraal in `lib/config.ts`. Houd de campagne `OutfitR webapp` aan: TikTok gebruikt `tiktok` en de marketingsite (`outfitr.nl/download`, Netlify) gebruikt `website`.
 
 ## Hoe het werkt (techniek in het kort)
 
@@ -30,12 +35,13 @@ Open daarna `http://localhost:3000/explore`.
 Zie `.env.local`:
 
 ```
-NEXT_PUBLIC_APP_STORE_URL=https://apps.apple.com/nl/app/outfitr/id6760657115
 OUTFITR_API_BASE_URL=https://api.outfitr.nl/api/v1
 NEXT_PUBLIC_SITE_URL=https://outfitr.nl
 ```
 
 Pas `NEXT_PUBLIC_SITE_URL` aan zodra het echte domein bekend is.
+
+`NEXT_PUBLIC_APP_STORE_URL` wordt niet meer gebruikt: de store-links (met campagne-tracking) staan vast in `lib/config.ts`.
 
 ## Deployen
 
@@ -73,6 +79,7 @@ app/
   post/[id]/not-found.tsx       – Weergave als een post niet (meer) bestaat
   api/explore/route.ts          – Proxy voor infinite scroll op /explore
   api/post-click/[id]/route.ts  – Proxy voor klik-registratie
+  download/route.ts             – Slimme app-download redirect (iOS / Android)
 components/
   ExploreFeed.tsx                – Masonry grid + infinite scroll (client)
   PostCard.tsx                   – Eén tegel in de explore-grid

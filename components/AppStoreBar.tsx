@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { APP_STORE_URL } from "@/lib/config";
+import { APP_DOWNLOAD_URL } from "@/lib/config";
 
 export default function AppStoreBar({
   variant = "light",
@@ -44,7 +44,7 @@ export default function AppStoreBar({
           </p>
         </div>
         <a
-          href={APP_STORE_URL}
+          href={APP_DOWNLOAD_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="shrink-0 rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white transition-transform active:scale-95 hover:bg-brand-primary-dark"

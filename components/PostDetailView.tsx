@@ -17,7 +17,7 @@ import {
   ShareIcon,
 } from "./icons";
 import TagOverlay from "./TagOverlay";
-import { APP_STORE_URL } from "@/lib/config";
+import { APP_DOWNLOAD_URL } from "@/lib/config";
 
 export default function PostDetailView({
   post,
@@ -335,7 +335,7 @@ export default function PostDetailView({
             Open the app to like, comment and save
           </p>
           <div className="mt-3 flex justify-center gap-2">
-            <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer"
+            <a href={APP_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer"
               className="rounded-full bg-brand-secondary px-4 py-2 text-sm font-semibold text-brand-primary-dark">
               Open app
             </a>

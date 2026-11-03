@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { APP_STORE_URL } from "@/lib/config";
+import { APP_DOWNLOAD_URL } from "@/lib/config";
 
 export default function ProfileNotFound() {
   return (
@@ -26,7 +26,7 @@ export default function ProfileNotFound() {
           Ontdek andere outfits
         </Link>
         <a
-          href={APP_STORE_URL}
+          href={APP_DOWNLOAD_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-full bg-brand-secondary px-5 py-2.5 text-sm font-semibold text-brand-primary-dark"
