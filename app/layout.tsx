@@ -48,6 +48,12 @@ export default function RootLayout({
             }(document, 'script'));
           `}
         </Script>
+        {/* Skimlinks (publisher 313522X1802259, only valid on app.outfitr.nl) */}
+        <Script
+          id="skimlinks"
+          src="https://s.skimresources.com/js/313522X1802259.skimlinks.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
